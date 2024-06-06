@@ -13,6 +13,8 @@ logs
 
 # Ignore .env files which may contain sensitive information
 .env
+.env.development
+.env.production
 
 # Ignore any files or directories that should not be committed
 .idea/

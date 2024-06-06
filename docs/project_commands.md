@@ -24,3 +24,11 @@ docker-compose -f docker-compose.dev.yml up
 docker-compose up --build -d
 
 ```
+
+##### Upload build to DockerHub
+
+Beagle bone use arm v7 so we use arm version of build
+
+```sh
+docker buildx build --platform linux/arm/v7 -t inamdryermaster/beaglebone-app:v1.1 -t inamdryermaster/beaglebone-app:latest --push -f Dockerfile .
+```

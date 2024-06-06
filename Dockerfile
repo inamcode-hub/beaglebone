@@ -5,19 +5,16 @@ FROM node:14
 WORKDIR /usr/src/app
 
 # Copy package.json and package-lock.json
-COPY package*.json ./
+COPY src/package*.json ./
 
 # Install the dependencies
 RUN npm install
 
-# Install nodemon globally
-RUN npm install -g nodemon
-
 # Copy the rest of the application code
-COPY . .
+COPY  src ./
 
 # Expose the port the app runs on
 EXPOSE 3000
 
-# Command to run the application in development mode
-CMD ["nodemon", "--legacy-watch", "index.js"]
+# Command to run the application
+CMD ["node", "index.js"]

@@ -7,6 +7,8 @@ services:
     ports:
       - '3000:3000'
     volumes:
-      - '/mnt/c/Users/inamd/OneDrive/Desktop/my work/dm 520/beaglebone/src:/usr/src/app'
+      - ./src:/usr/src/app
       - /usr/src/app/node_modules
     command: nodemon --legacy-watch index.js
+    env_file:
+      - .env.development

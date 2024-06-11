@@ -58,7 +58,7 @@ For detailed setup instructions, please refer to the [Project Setup](./docs/proj
 
 ## Documentation
 
-- [Project Setup Guide](./docs/project-setup.md)
+- [Project Setup Guide](./docs/project_setup.md)
 - [API Documentation](./docs/api.md)
 - [Contributing Guidelines](./docs/contributing.md)
 

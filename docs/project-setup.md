@@ -28,10 +28,6 @@ This document outlines the setup for our IoT project using Docker, BeagleBone, G
 
 ### BeagleBone
 
-- **SSH Username**: `your-beaglebone-username`
-- **SSH Password**: `your-beaglebone-password`
-- **Host**: `your-beaglebone-ip-address`
-
 ## Project Setup
 
 ### 1. Setting Up the Express.js Application

@@ -10,13 +10,13 @@ This project, developed by Dryermaster Inc., involves setting up BeagleBone IoT 
 - **Containerized Deployment**: Uses Docker to ensure consistent environments.
 - **Orchestration with Kubernetes**: Manages deployments, scaling, and operations of application containers.
 - **CI/CD Pipeline**: Automated testing, building, and deployment using GitHubAction.
-- **AWS EKS**: Uses Amazon Elastic Kubernetes Service for scalable and managed Kubernetes.
+- **AWS EKS**: Uses Amazon Elastic Kubernetes Service for scalable and managed Kubernetes.(Not part of this project)
 
 ## Architecture
 
 1. **BeagleBone Devices**: IoT devices that collect and send data to the server.
 2. **Docker**: Containerizes the application for consistent deployment.
-3. **Kubernetes**: Orchestrates the deployment on AWS EKS.
+3. **Kubernetes**: Orchestrates the deployment on AWS EKS.(Not part of this project)
 4. **GitHubAction**: Manages CI/CD pipeline.
 5. **AWS EKS**: Hosts the Kubernetes cluster.
 
@@ -33,28 +33,16 @@ To get started with the project, follow these steps:
 
 2. **Set Up the Environment**
 
-   - Ensure you have Docker, Kubernetes, and AWS CLI installed and configured.
-   - Set up environment variables for Docker Hub and AWS credentials in GitHubAction.
+   - Ensure you have Docker, installed and configured.
 
-3. **Running Locally**
+3. **Running Locally-production**
 
-   ```sh
-   docker-compose up
-   ```
+   - For instructions on running the project locally, [click here](./docs/project_commands.md#running-locally).
 
-4. **Deploying to Kubernetes**
-
-   - Ensure your Kubernetes cluster is configured.
-   - Apply the Kubernetes deployment files.
-
-   ```sh
-   kubectl apply -f k8s-deployment.yml
-   ```
-
-5. **CI/CD Pipeline**
+4. **CI/CD Pipeline**
    - Push changes to GitHub to trigger the GitHubAction pipeline for automated build and deployment.
 
-For detailed setup instructions, please refer to the [Project Setup](./docs/project_setup.md) guide.
+For detailed setup instructions, please refer to the [Github Actions](./docs/github_actions.md) guide.
 
 ## Documentation
 
@@ -67,9 +55,7 @@ For detailed setup instructions, please refer to the [Project Setup](./docs/proj
 - **Node.js**: JavaScript runtime for server-side development.
 - **Express.js**: Web framework for Node.js.
 - **Docker**: Platform for containerizing applications.
-- **Kubernetes**: Container orchestration platform.
 - **GitHubAction**: Continuous integration and deployment service.
-- **AWS EKS**: Managed Kubernetes service on AWS.
 
 ## Contributing
 
@@ -85,4 +71,4 @@ For any questions or suggestions, please open an issue or contact Inam Ul Rehman
 
 ---
 
-Thank you for checking out our project! We hope it provides a solid foundation for your IoT applications using BeagleBone, Docker, Kubernetes, and AWS.
+Thank you for checking out our project! We hope it provides a solid foundation for your IoT applications using BeagleBone, Docker, and AWS.

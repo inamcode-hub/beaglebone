@@ -12,7 +12,7 @@ if (fs.existsSync(versionPath)) {
 
 app.get('/', (req, res) =>
   res.send(
-    `<h1>Hello World!</h1><p>Running latest version ${version}.Update</p>`
+    `<h1>Hello World!</h1><p>Running latest version ${version}.Updates .</p>`
   )
 );
 

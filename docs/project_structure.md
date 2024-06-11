@@ -19,9 +19,6 @@ project-root/
 ├── Dockerfile
 ├── Dockerfile.dev
 ├── .gitignore
-├── k8s/
-│   ├── k8s-deployment.yml
-│   └── ... (other Kubernetes configuration files)
 ├── LICENSE
 ├── README.md
 └── scripts/

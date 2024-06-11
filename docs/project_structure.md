@@ -21,6 +21,7 @@ project-root/
 ├── .gitignore
 ├── LICENSE
 ├── README.md
+├── VERSION
 └── scripts/
     └── ... (shell scripts or other scripts for automation)
 ```

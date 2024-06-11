@@ -14,15 +14,19 @@
    - Select the necessary scopes (e.g., `read:packages` for read-only access to repositories).
    - Click "Generate" and **copy the token**. This token will not be shown again.
 
-## 2. Set Up the Environment on BeagleBone
+## 2. Install Docker - Set Up the Environment
 
-1. **Create a Secure Directory**:
+1. **Install Docker**:
+
+To install Docker, follow the instructions in the [Docker Installation Documentation](https://docs.docker.com/get-docker/).
+
+2. **Create a Secure Directory**:
 
    ```sh
    mkdir -p ~/docker
    ```
 
-2. **Create and Configure the `.env` File**:
+3. **Create and Configure the `.env` File**:
 
    - Create a file named `.env` in the `~/docker` directory:
      ```sh
@@ -40,7 +44,7 @@
      chmod 600 ~/docker/.env
      ```
 
-3. **Install Required Packages**:
+4. **Install Required Packages**:
    - Install `jq` on your BeagleBone:
      ```sh
      sudo apt-get update

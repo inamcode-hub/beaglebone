@@ -19,35 +19,7 @@ This guide will help you set up GitHub Actions to automate the process of buildi
 
 ## Example `docker-publish.yml` Workflow
 
-```yaml
-name: CI/CD Pipeline
-
-on:
-  push:
-    branches:
-      - main
-
-jobs:
-  build:
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
-
-      - name: Log in to Docker Hub
-        run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
-
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v1
-
-      - name: Build and push Docker image
-        run: |
-          docker buildx build --platform linux/arm/v7 -t inamdryermaster/beaglebone-app:latest --push -f Dockerfile .
-```
+You can find the workflow file [here](../.github/workflows/docker-publish.yml).
 
 ## Explanation
 
@@ -79,36 +51,7 @@ jobs:
 
 3. **Copy the Workflow YAML into the File**:
    Paste the following content into the `docker-publish.yml` file:
-
-   ```yaml
-   name: CI/CD Pipeline
-
-   on:
-     push:
-       branches:
-         - main
-
-   jobs:
-     build:
-       runs-on: ubuntu-latest
-
-       steps:
-         - name: Checkout code
-           uses: actions/checkout@v2
-
-         - name: Set up Docker Buildx
-           uses: docker/setup-buildx-action@v1
-
-         - name: Log in to Docker Hub
-           run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
-
-         - name: Set up QEMU
-           uses: docker/setup-qemu-action@v1
-
-         - name: Build and push Docker image
-           run: |
-             docker buildx build --platform linux/arm/v7 -t inamdryermaster/beaglebone-app:latest --push -f Dockerfile .
-   ```
+   You can find the workflow file [here](../.github/workflows/docker-publish.yml).
 
 4. **Commit and Push the Workflow File**:
    ```sh

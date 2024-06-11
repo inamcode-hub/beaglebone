@@ -54,7 +54,7 @@ To get started with the project, follow these steps:
 5. **CI/CD Pipeline**
    - Push changes to GitHub to trigger the GitHubAction pipeline for automated build and deployment.
 
-For detailed setup instructions, please refer to the [Project Setup](./docs/project-setup.md) guide.
+For detailed setup instructions, please refer to the [Project Setup](./docs/project_setup.md) guide.
 
 ## Documentation
 

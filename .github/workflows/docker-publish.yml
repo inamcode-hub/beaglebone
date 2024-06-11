@@ -24,10 +24,10 @@ jobs:
 
       - name: Extract version
         id: get_version
-        run: echo "::set-output name=version::$(cat src/VERSION)"
+        run: echo "::set-output name=version::$(cat VERSION)"
 
       - name: Build and push Docker image
         run: |
-          VERSION=$(cat src/VERSION)
+          VERSION=$(cat VERSION)
           docker buildx build --platform linux/arm/v7 -t inamdryermaster/beaglebone-app:${VERSION} --push -f Dockerfile .
           docker buildx build --platform linux/arm/v7 -t inamdryermaster/beaglebone-app:latest --push -f Dockerfile .

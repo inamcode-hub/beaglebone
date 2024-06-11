@@ -13,8 +13,8 @@ RUN npm install
 # Copy the rest of the application code
 COPY src ./
 
-# Copy the version file
-COPY src/VERSION /usr/src/app/VERSION
+# Copy the version file from the root directory
+COPY VERSION /usr/src/app/VERSION
 
 # Expose the port the app runs on
 EXPOSE 3000

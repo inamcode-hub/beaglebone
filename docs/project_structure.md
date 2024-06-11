@@ -2,8 +2,9 @@
 
 ```scss
 project-root/
-├── .circleci/
-│   └── ... (CircleCI configuration files)
+├── .github/
+│   └── workflows/
+│       └── ci-cd.yml  # GitHub Actions workflow file
 ├── docs/
 │   └── ... (Documentation files)
 ├── src/
@@ -24,6 +25,7 @@ project-root/
 ├── VERSION
 └── scripts/
     └── ... (shell scripts or other scripts for automation)
+
 ```
 
 # Deployment Workflow for BeagleBone IoT Device

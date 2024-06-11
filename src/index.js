@@ -11,9 +11,7 @@ if (fs.existsSync(versionPath)) {
 }
 
 app.get('/', (req, res) =>
-  res.send(
-    `<h1>Hello World!</h1><p>Running latest version ${version}.New version 9.</p>`
-  )
+  res.send(`<h1>Hello World!</h1><p>Running latest version ${version}.</p>`)
 );
 
 app.listen(port, () => {

@@ -11,13 +11,11 @@ COPY src/package*.json ./
 RUN npm install
 
 # Copy the rest of the application code
-COPY src ./
-
-# Copy the version file from the root directory
-COPY VERSION /usr/src/app/VERSION
+COPY src ./src
+COPY VERSION ./VERSION
 
 # Expose the port the app runs on
 EXPOSE 3000
 
 # Command to run the application
-CMD ["node", "index.js"]
+CMD ["npm", "start"]

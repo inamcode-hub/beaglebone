@@ -20,6 +20,13 @@ if [ -z "$DOCKER_HUB_TOKEN" ] || [ -z "$DOCKER_HUB_USERNAME" ] || [ -z "$DOCKER_
   exit 1
 fi
 
+# Create logs directory if it doesn't exist
+if [ ! -d "./logs" ]; then
+  echo "Creating logs directory..."
+  mkdir -p ./logs
+  chmod 755 ./logs
+fi
+
 # Log in to Docker Hub using the access token
 echo "Logging in to Docker Hub..."
 echo "$DOCKER_HUB_TOKEN" | docker login -u "$DOCKER_HUB_USERNAME" --password-stdin

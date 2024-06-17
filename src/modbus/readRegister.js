@@ -1,30 +1,25 @@
-const logger = require('../config/logger');
-const modbusClient = require('./modbusClient');
+const { client, connect, close } = require('./modbusClient');
 const registers = require('./registers');
-const scaleValue = require('../utils/scaleValue');
+const logger = require('../config/logger');
 
-// Function to generate random values for simulation
-function generateRandomValue(scaleFunction) {
-  const randomValue = Math.random() * 100;
-  return scaleFunction(randomValue);
+// Helper function to scale read values
+function scaleValue(reg, rawValue) {
+  return reg ? reg.scale(rawValue) : undefined;
 }
 
-// Function to simulate Modbus readings
+// Function to simulate readings
 function simulateReadings() {
-  logger.info('Simulating Modbus readings');
-  return registers.map((register) => ({
-    tagName: register.tagName,
-    value: generateRandomValue(register.scale),
+  return registers.map((reg) => ({
+    tagName: reg.tagName,
+    value: Math.random() * 100, // Random value for simulation
   }));
 }
 
-// Function to perform actual Modbus communication
-async function performModbusCommunication() {
+// Function to read Modbus registers and log the readings
+async function readRegister() {
   let allReadings = [];
-
   try {
-    await modbusClient.connect();
-
+    await connect();
     const blocks = [
       { start: 0, count: 26 },
       { start: 100, count: 6 },
@@ -33,7 +28,7 @@ async function performModbusCommunication() {
     ];
 
     for (let block of blocks) {
-      const data = await modbusClient.readRegisters(block.start, block.count);
+      const data = await client.readHoldingRegisters(block.start, block.count);
       for (let i = 0; i < block.count; i++) {
         const reg = registers.find((r) => r.address === block.start + i);
         if (reg) {
@@ -45,24 +40,13 @@ async function performModbusCommunication() {
     }
   } catch (error) {
     logger.error(`Error during Modbus communication: ${error.message}`);
+    logger.info('Simulating Modbus readings');
+    allReadings = simulateReadings();
   } finally {
-    try {
-      await modbusClient.close();
-    } catch (error) {
-      // Error already handled in modbusClient.close
-    }
+    close();
   }
 
   return allReadings;
-}
-
-// Main function to read Modbus registers
-async function readRegister() {
-  if (process.env.MODE === 'development') {
-    return simulateReadings();
-  } else {
-    return await performModbusCommunication();
-  }
 }
 
 module.exports = readRegister;

@@ -1,6 +1,6 @@
 const ModbusRTU = require('modbus-serial');
-const logger = require('../config/logger');
 const client = new ModbusRTU();
+const logger = require('../config/logger');
 
 async function connect() {
   try {
@@ -19,23 +19,15 @@ async function connect() {
   }
 }
 
-async function close() {
+function close() {
   try {
-    await client.close();
-    logger.info('Closed Modbus client');
-  } catch (error) {
-    if (error.message !== 'Port is not open') {
-      logger.error(`Error closing Modbus client: ${error.message}`);
+    if (client.isOpen) {
+      client.close();
+      logger.info('Closed Modbus client');
     }
+  } catch (error) {
+    logger.error(`Error closing Modbus client: ${error.message}`);
   }
 }
 
-async function readRegisters(start, count) {
-  return await client.readHoldingRegisters(start, count);
-}
-
-module.exports = {
-  connect,
-  close,
-  readRegisters,
-};
+module.exports = { client, connect, close };

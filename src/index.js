@@ -1,19 +1,27 @@
+// src/index.js
+
 const express = require('express');
 const fs = require('fs');
-const app = express();
-const port = 3000;
+const path = require('path');
+const dotenv = require('dotenv');
+const logger = require('./config/logger');
+const routes = require('./routes');
 
-// Read the version from the VERSION file
-const versionPath = '/usr/src/app/VERSION';
+dotenv.config(); // Load environment variables
+
+const app = express();
+const port = process.env.PORT || 3000;
+
+// Read version from file
+const versionPath = path.join(__dirname, '../VERSION');
 let version = 'unknown';
 if (fs.existsSync(versionPath)) {
   version = fs.readFileSync(versionPath, 'utf8').trim();
 }
 
-app.get('/', (req, res) =>
-  res.send(`<h1>Hello World!</h1><p>Running latest version ${version}.</p>`)
-);
+app.use('/', routes);
 
 app.listen(port, () => {
-  console.log(`Server is listening on port ${port}`);
+  logger.info(`Server is listening on port ${port}`);
+  logger.info(`Running latest version ${version}`);
 });

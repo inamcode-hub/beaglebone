@@ -15,3 +15,5 @@ services:
     command: npm run dev
     env_file:
       - .env.development
+    devices:
+      - '/dev/ttyS2:/dev/ttyS2'

@@ -294,6 +294,12 @@ This script ensures that the BeagleBone IoT device always runs the latest versio
 chmod +x ~/docker/deploy.sh
 ```
 
+Manually run command
+
+```sh
+./deploy.sh
+```
+
 ## 4. Set Up a Cron Job for Automatic Updates
 
 1. **Edit the Crontab**:

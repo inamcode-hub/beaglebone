@@ -3,11 +3,8 @@
 const express = require('express');
 const fs = require('fs');
 const path = require('path');
-const dotenv = require('dotenv');
 const logger = require('./config/logger');
 const routes = require('./routes');
-
-dotenv.config(); // Load environment variables
 
 const app = express();
 const port = process.env.PORT || 3000;

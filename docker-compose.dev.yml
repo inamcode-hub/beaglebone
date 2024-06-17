@@ -12,6 +12,7 @@ services:
       - ./src/package.json:/usr/src/app/package.json
       - ./src/package-lock.json:/usr/src/app/package-lock.json
       - /usr/src/app/node_modules
+      - ./logs:/usr/src/app/logs
     command: npm run dev
     env_file:
       - .env.development

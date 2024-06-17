@@ -10,3 +10,10 @@ services:
       - .env.production
     devices:
       - '/dev/ttyS2:/dev/ttyS2'
+    volumes:
+      - ./logs:/usr/src/app/logs
+    logging:
+      driver: 'json-file'
+      options:
+        max-size: '10m'
+        max-file: '3'

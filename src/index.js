@@ -1,12 +1,11 @@
-// src/index.js
-
 const express = require('express');
 const fs = require('fs');
 const path = require('path');
 const logger = require('./config/logger');
-const routes = require('./routes');
+const routes = require('./routes/index');
 
 const app = express();
+
 const port = process.env.PORT || 3000;
 
 // Read version from file

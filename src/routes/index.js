@@ -1,5 +1,3 @@
-// src/routes/index.js
-
 const express = require('express');
 const readRegister = require('../modbus/readRegister');
 const router = express.Router();

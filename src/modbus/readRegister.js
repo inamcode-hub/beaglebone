@@ -1,13 +1,7 @@
-// src/modbus/readRegister.js
-
 const logger = require('../config/logger');
 const modbusClient = require('./modbusClient');
 const registers = require('./registers');
-
-// Helper function to scale read values
-function scaleValue(reg, rawValue) {
-  return reg ? reg.scale(rawValue) : undefined;
-}
+const scaleValue = require('../utils/scaleValue');
 
 // Function to generate random values for simulation
 function generateRandomValue(scaleFunction) {
@@ -30,13 +24,12 @@ async function performModbusCommunication() {
 
   try {
     await modbusClient.connect();
-    logger.info('Modbus client connected successfully');
 
     const blocks = [
-      { start: 0, count: 26 }, // Covers registers at addresses 0-26
-      { start: 100, count: 6 }, // Covers registers at addresses 99-106
-      { start: 149, count: 1 }, // Covers registers at address 149
-      { start: 199, count: 1 }, // Covers registers at address 199
+      { start: 0, count: 26 },
+      { start: 100, count: 6 },
+      { start: 149, count: 1 },
+      { start: 199, count: 1 },
     ];
 
     for (let block of blocks) {
@@ -55,9 +48,8 @@ async function performModbusCommunication() {
   } finally {
     try {
       await modbusClient.close();
-      logger.info('Closed Modbus client');
     } catch (error) {
-      logger.error(`Error closing Modbus client: ${error.message}`);
+      // Error already handled in modbusClient.close
     }
   }
 

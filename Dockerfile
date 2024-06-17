@@ -10,6 +10,9 @@ COPY src/package*.json ./
 # Install the dependencies
 RUN npm install
 
+# Create logs directory
+RUN mkdir -p /usr/src/app/logs
+
 # Copy the rest of the application code
 COPY src ./src
 COPY VERSION ./VERSION

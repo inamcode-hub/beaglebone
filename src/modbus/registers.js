@@ -1,5 +1,3 @@
-// src/modbus/registers.js
-
 const scalePercentage = (value) => value / 100;
 const scaleTemperature = (value) => value / 100;
 const scaleRate = (value) => value / 100;

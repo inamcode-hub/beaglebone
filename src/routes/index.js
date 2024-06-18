@@ -1,5 +1,5 @@
 const express = require('express');
-const readRegister = require('../modbus/readRegister');
+const readRegister = require('../services/readRegister');
 const router = express.Router();
 
 router.get('/', async (req, res) => {

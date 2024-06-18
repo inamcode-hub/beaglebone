@@ -11,12 +11,16 @@
     "docker:dev": "npm run docker:build:dev && npm run docker:run:dev",
     "docker:build:prod": "node scripts/dockerCommands.js buildProd",
     "docker:run:prod": "node scripts/dockerCommands.js runProd",
-    "docker:prod": "npm run docker:build:prod && npm run docker:run:prod"
+    "docker:prod": "npm run docker:build:prod && npm run docker:run:prod",
+    "deploy": "node scripts/deploy.js",
+    "deploy:watch": "node scripts/continuousDeploy.js"
   },
   "dependencies": {
+    "chokidar": "^3.6.0",
     "dotenv": "^10.0.0",
     "express": "^4.17.1",
     "modbus-serial": "^8.0.5",
+    "scp2": "^0.5.0",
     "winston": "^3.3.3"
   },
   "devDependencies": {

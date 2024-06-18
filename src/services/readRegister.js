@@ -1,21 +1,18 @@
 const { client, connect, close } = require('./modbusClient');
-const registers = require('./registers');
+const registers = require('../models/registers');
 const logger = require('../config/logger');
 
-// Helper function to scale read values
 function scaleValue(reg, rawValue) {
   return reg ? reg.scale(rawValue) : undefined;
 }
 
-// Function to simulate readings
 function simulateReadings() {
   return registers.map((reg) => ({
     tagName: reg.tagName,
-    value: Math.random() * 100, // Random value for simulation
+    value: Math.random() * 100,
   }));
 }
 
-// Function to read Modbus registers and log the readings
 async function readRegister() {
   let allReadings = [];
   try {

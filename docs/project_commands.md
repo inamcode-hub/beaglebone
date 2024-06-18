@@ -43,6 +43,13 @@ ${DOCKER_USERNAME}=YOUR_DOCKER_USER_NAME
 ${DOCKER_REPOSITORY}=YOUR_DOCKER_REPOSITORY
 ```
 
+## Chokidar C/D on beaglebone
+
+```
+npm run deploy:watch
+
+```
+
 ## Commands in package.json
 
 Your `package.json` file contains several scripts to help with building and running your Docker images. These commands are:

@@ -34,16 +34,21 @@ jobs:
         id: get_version
         run: echo "::set-output name=version::$(jq -r .version package.json)"
 
+      - name: Check Docker Repository Owner and Name
+        run: |
+          if [ -z "${{ secrets.DOCKER_USERNAME }}" ]; then echo "DOCKER_USERNAME is not set"; exit 1; fi
+          if [ -z "${{ secrets.DOCKER_REPOSITORY }}" ]; then echo "DOCKER_REPOSITORY is not set"; exit 1; fi
+
       - name: Build and push production Docker image
         run: |
           VERSION=$(jq -r .version package.json)
-          npm run docker:build:prod
-          docker buildx build --platform linux/arm/v7 -t ${{ secrets.DOCKER_REPOSITORY_OWNER }}/${{ secrets.DOCKER_REPOSITORY_NAME }}:${VERSION} --push -f Dockerfile .
-          docker buildx build --platform linux/arm/v7 -t ${{ secrets.DOCKER_REPOSITORY_OWNER }}/${{ secrets.DOCKER_REPOSITORY_NAME }}:latest --push -f Dockerfile .
+          IMAGE_NAME=${{ secrets.DOCKER_USERNAME }}/${{ secrets.DOCKER_REPOSITORY }}:${VERSION}
+          docker buildx build --platform linux/arm/v7 -t $IMAGE_NAME --push -f Dockerfile .
+          docker buildx build --platform linux/arm/v7 -t ${{ secrets.DOCKER_USERNAME }}/${{ secrets.DOCKER_REPOSITORY }}:latest --push -f Dockerfile .
 
       - name: Build and push development Docker image
         run: |
           VERSION=$(jq -r .version package.json)
-          npm run docker:build:dev
-          docker buildx build --platform linux/arm/v7 -t ${{ secrets.DOCKER_REPOSITORY_OWNER }}/${{ secrets.DOCKER_REPOSITORY_NAME }}-dev:${VERSION} --push -f Dockerfile.dev .
-          docker buildx build --platform linux/arm/v7 -t ${{ secrets.DOCKER_REPOSITORY_OWNER }}/${{ secrets.DOCKER_REPOSITORY_NAME }}-dev:latest --push -f Dockerfile.dev .
+          IMAGE_NAME_DEV=${{ secrets.DOCKER_USERNAME }}/${{ secrets.DOCKER_REPOSITORY }}-dev:${VERSION}
+          docker buildx build --platform linux/arm/v7 -t $IMAGE_NAME_DEV --push -f Dockerfile.dev .
+          docker buildx build --platform linux/arm/v7 -t ${{ secrets.DOCKER_USERNAME }}/${{ secrets.DOCKER_REPOSITORY }}-dev:latest --push -f Dockerfile.dev .

@@ -13,6 +13,8 @@ echo "DOCKER_HUB_USERNAME: $DOCKER_HUB_USERNAME"
 echo "DOCKER_HUB_TOKEN: $DOCKER_HUB_TOKEN"
 echo "DOCKER_REPOSITORY_OWNER: $DOCKER_REPOSITORY_OWNER"
 echo "DOCKER_REPOSITORY_NAME: $DOCKER_REPOSITORY_NAME"
+echo "NODE_ENV: $NODE_ENV"
+echo "PORT: $PORT"
 
 # Check if the required variables are set
 if [ -z "$DOCKER_HUB_TOKEN" ] || [ -z "$DOCKER_HUB_USERNAME" ] || [ -z "$DOCKER_REPOSITORY_OWNER" ] || [ -z "$DOCKER_REPOSITORY_NAME" ]; then
@@ -79,7 +81,10 @@ if [ "$LATEST_VERSION" != "$CURRENT_VERSION" ]; then
   fi
 
   # Run the new container with the repository name as the container name
-  docker run -d -p 3000:3000 --name $DOCKER_REPOSITORY_NAME -e NODE_ENV=production $DOCKER_REPOSITORY_OWNER/$DOCKER_REPOSITORY_NAME:${LATEST_VERSION}
+  docker run -d -p $PORT:3000 --name $DOCKER_REPOSITORY_NAME \
+    -e NODE_ENV=$NODE_ENV \
+    -e PORT=$PORT \
+    $DOCKER_REPOSITORY_OWNER/$DOCKER_REPOSITORY_NAME:${LATEST_VERSION}
 
   # Ensure the directory exists
   mkdir -p ~/app

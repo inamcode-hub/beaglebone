@@ -9,18 +9,16 @@ project-root/
 │   └── ... (Documentation files)
 ├── src/
 │   ├── index.js
-│   ├── package.json
-│   ├── package-lock.json
 │   └── ... (other source files)
 ├── .dockerignore
 ├── .env.development
 ├── .env.production
-├── docker-compose.dev.yml
-├── docker-compose.yml
 ├── Dockerfile
 ├── Dockerfile.dev
 ├── .gitignore
 ├── LICENSE
+├── package.json
+├── package-lock.json
 ├── README.md
 ├── VERSION
 └── scripts/

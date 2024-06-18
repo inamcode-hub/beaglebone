@@ -12,7 +12,6 @@
     "docker:build:prod": "node scripts/dockerCommands.js buildProd",
     "docker:run:prod": "node scripts/dockerCommands.js runProd",
     "docker:prod": "npm run docker:build:prod && npm run docker:run:prod",
-    "deploy": "node scripts/deploy.js",
     "deploy:watch": "node scripts/continuousDeploy.js"
   },
   "dependencies": {

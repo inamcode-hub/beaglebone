@@ -25,9 +25,9 @@ const dockerProdImage = `${process.env.DOCKER_REPOSITORY_OWNER}/${process.env.DO
 // Docker commands
 const commands = {
   buildDev: `docker build --load -t ${dockerDevImage} -f Dockerfile.dev .`,
-  runDev: `docker run -p ${process.env.PORT}:${process.env.PORT} --name beaglebone-app-dev --env-file ${dockerDevEnvFile} -v ${dockerDevVolume} ${dockerDevImage}`,
+  runDev: `docker run -p ${process.env.PORT}:${process.env.PORT} --name beaglebone-app-dev --device=/dev/ttyS2 --env-file ${dockerDevEnvFile} -v ${dockerDevVolume} ${dockerDevImage}`,
   buildProd: `docker build --load -t ${dockerProdImage} -f Dockerfile .`,
-  runProd: `docker run -d -p ${process.env.PORT}:${process.env.PORT} --name beaglebone-app --env-file ${dockerProdEnvFile} ${dockerProdImage}`,
+  runProd: `docker run -d -p ${process.env.PORT}:${process.env.PORT} --name beaglebone-app --device=/dev/ttyS2 --env-file ${dockerProdEnvFile} ${dockerProdImage}`,
 };
 
 // Run command

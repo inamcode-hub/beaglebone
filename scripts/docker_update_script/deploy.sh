@@ -79,7 +79,7 @@ if [ "$LATEST_VERSION" != "$CURRENT_VERSION" ]; then
   fi
 
   # Run the new container with the repository name as the container name
-  docker run -d -p 3000:3000 --name $DOCKER_REPOSITORY_NAME $DOCKER_REPOSITORY_OWNER/$DOCKER_REPOSITORY_NAME:${LATEST_VERSION}
+  docker run -d -p 3000:3000 --name $DOCKER_REPOSITORY_NAME -e NODE_ENV=production $DOCKER_REPOSITORY_OWNER/$DOCKER_REPOSITORY_NAME:${LATEST_VERSION}
 
   # Ensure the directory exists
   mkdir -p ~/app

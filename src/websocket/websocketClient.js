@@ -1,6 +1,7 @@
 const WebSocket = require('ws');
 const logger = require('../config/logger');
 const { handleMessage } = require('../controllers/websocketController');
+const { readSerialNumber } = require('../services/modbusClient');
 
 const RECONNECT_INTERVAL = 5000; // Time in milliseconds to wait before attempting to reconnect
 
@@ -9,13 +10,17 @@ function initWebSocket() {
 
   function connect() {
     ws = new WebSocket(process.env.WEBSOCKET_SERVER_URL);
-
-    console.log(
+    logger.info(
       `WebSocket client connecting to ${process.env.WEBSOCKET_SERVER_URL}`
     );
 
-    ws.on('open', () => {
+    ws.on('open', async () => {
       logger.info('WebSocket connection established');
+
+      const deviceSerialNumber = (await readSerialNumber()) || 'Unknown';
+      ws.send(
+        JSON.stringify({ type: 'handshake', serialNumber: deviceSerialNumber })
+      );
     });
 
     ws.on('message', (message) => {

@@ -6,6 +6,7 @@ function scaleValue(reg, rawValue) {
   return reg ? reg.scale(rawValue) : undefined;
 }
 
+// Simulate readings if Modbus communication fails - for testing purposes
 function simulateReadings() {
   return registers.map((reg) => ({
     tagName: reg.tagName,

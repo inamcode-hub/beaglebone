@@ -37,7 +37,7 @@ function close() {
     logger.error(`Error closing Modbus client: ${error.message}`);
   }
 }
-
+// Read the first 10 registers from the Modbus device
 async function readRegisters() {
   try {
     await connect();
@@ -49,6 +49,21 @@ async function readRegisters() {
     logger.error(`Error reading registers: ${error.message}`);
     close();
     throw error;
+  }
+}
+
+//Read Serial Number from the Modbus device
+async function readSerialNumber() {
+  try {
+    await connect();
+    const data = await client.readHoldingRegisters(149, 1);
+    logger.info(`Read serial number data: ${JSON.stringify(data)}`);
+    close();
+    return data.data[0];
+  } catch (error) {
+    logger.error(`Error reading serial number: ${error.message}`);
+    close();
+    return null;
   }
 }
 
@@ -67,4 +82,11 @@ async function writeRegister(registerAddress, value) {
   }
 }
 
-module.exports = { client, connect, close, readRegisters, writeRegister };
+module.exports = {
+  client,
+  connect,
+  close,
+  readRegisters,
+  writeRegister,
+  readSerialNumber,
+};

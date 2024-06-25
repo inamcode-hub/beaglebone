@@ -1,3 +1,5 @@
+// src/services/modbusClient.js
+
 const ModbusRTU = require('modbus-serial');
 const client = new ModbusRTU();
 const logger = require('../config/logger');
@@ -37,7 +39,7 @@ function close() {
     logger.error(`Error closing Modbus client: ${error.message}`);
   }
 }
-// Read the first 10 registers from the Modbus device
+
 async function readRegisters() {
   try {
     await connect();
@@ -52,7 +54,6 @@ async function readRegisters() {
   }
 }
 
-//Read Serial Number from the Modbus device
 async function readSerialNumber() {
   try {
     await connect();
@@ -73,10 +74,12 @@ async function writeRegister(registerAddress, value) {
       `Attempting to write to register ${registerAddress} with value ${value}`
     );
     await connect();
-    await client.writeRegister(registerAddress, value);
-    logger.info(`Register ${registerAddress} updated to ${value}`);
+    const result = await client.writeRegister(registerAddress, value);
+    logger.info(`Register ${result.address} updated to ${result.value}`);
+    return result;
   } catch (error) {
     logger.error(`Error writing to register: ${error.message}`);
+    throw error;
   } finally {
     close();
   }

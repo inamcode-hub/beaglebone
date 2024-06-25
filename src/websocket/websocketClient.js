@@ -17,12 +17,16 @@ function initWebSocket() {
     ws.on('open', async () => {
       logger.info('WebSocket connection established');
 
+      // === Device handshake ===
       const deviceSerialNumber = (await readSerialNumber()) || 'Unknown';
       ws.send(
-        JSON.stringify({ type: 'handshake', serialNumber: deviceSerialNumber })
+        JSON.stringify({
+          type: 'DEVICE_HANDSHAKE',
+          serialNumber: deviceSerialNumber,
+        })
       );
     });
-
+    // === Response to the server ===
     ws.on('message', (message) => {
       handleMessage(ws, message);
     });
@@ -37,7 +41,7 @@ function initWebSocket() {
       ws.close(); // Close the connection and trigger the reconnect logic
     });
   }
-
+  ///
   connect(); // Initiate the first connection
 
   return ws;

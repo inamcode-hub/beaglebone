@@ -57,7 +57,7 @@ async function readSerialNumber() {
   try {
     await connect();
     const data = await client.readHoldingRegisters(149, 1);
-    logger.info(`Read serial number data: ${JSON.stringify(data)}`);
+    logger.info(`Read serial number data: ${JSON.stringify(data.data[0])}`);
     close();
     return data.data[0];
   } catch (error) {

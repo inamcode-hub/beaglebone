@@ -18,7 +18,10 @@ async function handleMessage(ws, message) {
 
 async function handleReadData(ws) {
   const data = await readRegister();
-  ws.send(JSON.stringify({ type: 'DATA_RESPONSE', data }));
+  const serialNumber = data.find(
+    (item) => item.tagName === 'systemSerialNumberWriteOnly'
+  ).value;
+  ws.send(JSON.stringify({ type: 'DATA_RESPONSE', serialNumber, data }));
 }
 
 async function handleUpdateRegister(ws, message) {
@@ -26,5 +29,5 @@ async function handleUpdateRegister(ws, message) {
   await modbusClient.writeRegister(registerAddress, newValue);
   ws.send(JSON.stringify({ type: 'UPDATE_ACK', registerAddress, newValue }));
 }
-
+//
 module.exports = { handleMessage };

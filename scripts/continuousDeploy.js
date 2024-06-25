@@ -6,7 +6,7 @@ const scp = require('scp2');
 
 // Local and remote paths
 const localPath = path.resolve(__dirname, '..');
-const remotePath = '/home/debian/docker/test';
+const remotePath = '/home/debian/docker/beaglebone';
 
 // Check if running in Windows or Unix-like environment
 const isWindows = process.platform === 'win32';

@@ -21,7 +21,7 @@ function initWebSocket() {
       const deviceSerialNumber = (await readSerialNumber()) || 'Unknown';
       ws.send(
         JSON.stringify({
-          type: 'DEVICE_HANDSHAKE',
+          type: 'DEVICE_CONNECT',
           serialNumber: deviceSerialNumber,
         })
       );

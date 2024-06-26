@@ -8,10 +8,10 @@ async function handleMessage(ws, message) {
   const parsedMessage = JSON.parse(message);
 
   switch (parsedMessage.type) {
-    case 'READ_DATA':
+    case 'REQUEST_SENSOR_DATA':
       await handleReadData(ws);
       break;
-    case 'UPDATE_REGISTER':
+    case 'UPDATE_DEVICE_SETTINGS':
       await handleUpdateRegister(ws, parsedMessage);
       break;
     default:
@@ -25,9 +25,11 @@ async function handleReadData(ws) {
     const serialNumber = data.find(
       (item) => item.tagName === 'systemSerialNumberWriteOnly'
     ).value;
-    ws.send(JSON.stringify({ type: 'DATA_RESPONSE', serialNumber, data }));
+    ws.send(
+      JSON.stringify({ type: 'SENSOR_DATA_RESPONSE', serialNumber, data })
+    );
   } catch (error) {
-    logger.error(`Error handling READ_DATA: ${error.message}`);
+    logger.error(`Error handling DEVICE_CONNECT: ${error.message}`);
     ws.send(JSON.stringify({ type: 'ERROR', message: error.message }));
   }
 }
@@ -38,14 +40,14 @@ async function handleUpdateRegister(ws, message) {
     const result = await modbusClient.writeRegister(registerAddress, newValue);
     ws.send(
       JSON.stringify({
-        type: 'UPDATE_ACK',
+        type: 'DEVICE_SETTINGS_UPDATE_ACK',
         serialNumber,
         registerAddress: result.address,
         newValue: result.value,
       })
     );
   } catch (error) {
-    logger.error(`Error handling UPDATE_REGISTER: ${error.message}`);
+    logger.error(`Error handling UPDATE_DEVICE_SETTINGS: ${error.message}`);
     ws.send(JSON.stringify({ type: 'ERROR', message: error.message }));
   }
 }

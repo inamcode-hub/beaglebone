@@ -1,6 +1,7 @@
-const { client, connect, close } = require('./modbusClient');
-const registers = require('../models/registers');
-const logger = require('../config/logger');
+import { client, connect, close } from './modbusClient.js';
+import registers from '../models/modbusRegisters.js';
+import logger from '../../common/config/logger.js';
+import { modbusErrorHandler } from '../../common/middlewares/modbusErrorHandler.js';
 
 function scaleValue(reg, rawValue) {
   return reg ? reg.scale(rawValue) : undefined;
@@ -14,7 +15,7 @@ function simulateReadings() {
   }));
 }
 
-async function readRegister() {
+export async function readRegisters() {
   let allReadings = [];
   try {
     await connect();
@@ -46,5 +47,3 @@ async function readRegister() {
 
   return allReadings;
 }
-
-module.exports = readRegister;

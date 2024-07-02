@@ -8,11 +8,38 @@ project-root/
 ├── docs/
 │   └── ... (Documentation files)
 ├── src/
+│   ├── common/
+│   │   ├── config/
+│   │   │   └── logger.js
+│   │   ├── middlewares/
+│   │   │   └── errorHandler.js
+│   │   └── utils/
+│   │       └── helpers.js
+│   ├── modbus/
+│   │   ├── controllers/
+│   │   │   └── modbusController.js
+│   │   ├── models/
+│   │   │   └── modbusRegisters.js
+│   │   ├── routes/
+│   │   │   └── modbusRoutes.js
+│   │   ├── services/
+│   │   │   ├── modbusClient.js
+│   │   │   └── modbusReadService.js
+│   ├── websocket/
+│   │   ├── controllers/
+│   │   │   └── websocketController.js
+│   │   ├── routes/
+│   │   │   └── websocketRoutes.js
+│   │   ├── services/
+│   │   │   └── websocketService.js
+│   │   ├── client/
+│   │   │   ├── websocketClient.js
+│   │   │   └── websocketHandler.js
 │   ├── index.js
-│   └── ... (other source files)
+│   ├── .env.development
+│   ├── .env.production
+│   └── VERSION
 ├── .dockerignore
-├── .env.development
-├── .env.production
 ├── Dockerfile
 ├── Dockerfile.dev
 ├── .gitignore
@@ -20,10 +47,8 @@ project-root/
 ├── package.json
 ├── package-lock.json
 ├── README.md
-├── VERSION
 └── scripts/
     └── ... (shell scripts or other scripts for automation)
-
 ```
 
 # Deployment Workflow for BeagleBone IoT Device

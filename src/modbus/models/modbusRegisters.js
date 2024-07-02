@@ -47,4 +47,4 @@ const registers = [
   { address: 199, tagName: 'heartbeatRegisterWriteOnly', scale: noScale },
 ];
 
-module.exports = registers;
+export default registers;

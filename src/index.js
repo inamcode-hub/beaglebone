@@ -1,9 +1,15 @@
-const express = require('express');
-const fs = require('fs');
-const path = require('path');
-const logger = require('./config/logger');
-const readRegister = require('./services/readRegister');
-const { initWebSocket } = require('./websocket/websocketClient');
+import express from 'express';
+import path from 'path';
+import fs from 'fs';
+import { fileURLToPath } from 'url';
+import logger from './common/config/logger.js';
+import { logErrors, errorHandler } from './common/middlewares/errorHandler.js';
+import { initWebSocketServer } from './websocket/websocketServer.js';
+import { initWebSocketClient } from './websocket/services/websocketClient.js';
+
+// Convert import.meta.url to a file path
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -13,13 +19,20 @@ let version = 'unknown';
 if (fs.existsSync(versionPath)) {
   version = fs.readFileSync(versionPath, 'utf8').trim();
 }
-app.get('/', async (req, res) => {
-  const readings = await readRegister();
-  res.json({ version, readings });
-});
 
-app.listen(port, () => {
+// Add routes and other middleware here
+
+// Global error handling middleware
+app.use(logErrors);
+app.use(errorHandler);
+
+// Initialize WebSocket server
+const server = app.listen(port, () => {
   logger.info(`Server is listening on port ${port}`);
   logger.info(`Running latest version ${version}`);
-  initWebSocket();
 });
+
+initWebSocketServer(server);
+
+// Initialize WebSocket client
+initWebSocketClient();

@@ -1,8 +1,8 @@
-// src/services/modbusClient.js
+import ModbusRTU from 'modbus-serial';
+import logger from '../../common/config/logger.js';
+import { modbusErrorHandler } from '../../common/middlewares/modbusErrorHandler.js';
 
-const ModbusRTU = require('modbus-serial');
 const client = new ModbusRTU();
-const logger = require('../config/logger');
 
 async function connect() {
   try {
@@ -21,8 +21,7 @@ async function connect() {
       logger.info('Modbus client is already connected');
     }
   } catch (error) {
-    logger.error(`Error during Modbus communication: ${error.message}`);
-    throw error;
+    throw modbusErrorHandler(error, 'Modbus connect');
   }
 }
 
@@ -48,9 +47,8 @@ async function readRegisters() {
     close();
     return data;
   } catch (error) {
-    logger.error(`Error reading registers: ${error.message}`);
     close();
-    throw error;
+    throw modbusErrorHandler(error, 'Modbus readRegisters');
   }
 }
 
@@ -62,9 +60,8 @@ async function readSerialNumber() {
     close();
     return data.data[0];
   } catch (error) {
-    logger.error(`Error reading serial number: ${error.message}`);
     close();
-    return null;
+    throw modbusErrorHandler(error, 'Modbus readSerialNumber');
   }
 }
 
@@ -76,20 +73,19 @@ async function writeRegister(registerAddress, value) {
     await connect();
     const result = await client.writeRegister(registerAddress, value);
     logger.info(`Register ${result.address} updated to ${result.value}`);
+    close();
     return result;
   } catch (error) {
-    logger.error(`Error writing to register: ${error.message}`);
-    throw error;
-  } finally {
     close();
+    throw modbusErrorHandler(error, 'Modbus writeRegister');
   }
 }
 
-module.exports = {
+export {
   client,
   connect,
   close,
   readRegisters,
-  writeRegister,
   readSerialNumber,
+  writeRegister,
 };

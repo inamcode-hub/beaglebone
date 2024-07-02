@@ -1,6 +1,7 @@
 {
   "name": "modbus-serial-websocket-server",
   "version": "1.0.0",
+  "type": "module",
   "description": "A simple Node.js server that reads Modbus data from a serial port and broadcasts it to connected WebSocket clients.",
   "main": "src/index.js",
   "scripts": {

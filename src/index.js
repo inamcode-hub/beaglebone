@@ -3,7 +3,6 @@ import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
 import logger from './common/config/logger.js';
-import { logErrors, errorHandler } from './common/middlewares/errorHandler.js';
 import { initWebSocketServer } from './websocket/websocketServer.js';
 import { initWebSocketClient } from './websocket/services/websocketClient.js';
 
@@ -21,10 +20,6 @@ if (fs.existsSync(versionPath)) {
 }
 
 // Add routes and other middleware here
-
-// Global error handling middleware
-app.use(logErrors);
-app.use(errorHandler);
 
 // Initialize WebSocket server
 const server = app.listen(port, () => {

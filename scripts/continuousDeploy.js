@@ -1,10 +1,13 @@
-const chokidar = require('chokidar');
-const path = require('path');
-const fs = require('fs');
-const { execSync } = require('child_process');
-const scp = require('scp2');
+import chokidar from 'chokidar';
+import path from 'path';
+import fs from 'fs';
+import { execSync } from 'child_process';
+import scp2 from 'scp2';
+import { fileURLToPath } from 'url';
 
 // Local and remote paths
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 const localPath = path.resolve(__dirname, '..');
 const remotePath = '/home/debian/docker/beaglebone';
 
@@ -42,7 +45,7 @@ function transferFiles() {
       const localFile = path.join(localPath, file);
       if (fs.existsSync(localFile)) {
         const remoteFile = path.join(remotePath, file);
-        scp.scp(
+        scp2.scp(
           localFile,
           {
             host: '192.168.1.136',
@@ -70,6 +73,8 @@ function transferFiles() {
 }
 
 function startWatcher() {
+  console.log(`Starting file watcher on ${localPath}`);
+
   const watcher = chokidar.watch(localPath, {
     ignored: /node_modules|\.git/,
     persistent: true,
@@ -78,6 +83,10 @@ function startWatcher() {
   watcher.on('change', (filePath) => {
     console.log(`File changed: ${filePath}`);
     transferFiles();
+  });
+
+  watcher.on('error', (error) => {
+    console.error('Watcher error:', error);
   });
 
   console.log('Watching for file changes...');

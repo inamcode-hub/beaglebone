@@ -16,10 +16,13 @@
     "deploy:watch": "node scripts/continuousDeploy.js"
   },
   "dependencies": {
+    "child_process": "^1.0.2",
     "chokidar": "^3.6.0",
     "dotenv": "^10.0.0",
     "express": "^4.17.1",
+    "fs": "^0.0.1-security",
     "modbus-serial": "^8.0.5",
+    "path": "^0.12.7",
     "scp2": "^0.5.0",
     "winston": "^3.3.3",
     "ws": "^8.17.1"

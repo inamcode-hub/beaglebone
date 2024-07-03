@@ -1,6 +1,6 @@
 const scalePercentage = (value) => value / 100;
 const scaleTemperature = (value) => value / 100;
-const scaleRate = (value) => value / 100;
+const scaleBy10 = (value) => value / 10;
 const noScale = (value) => value; // For data that doesn't need scaling
 
 const registers = [
@@ -12,9 +12,9 @@ const registers = [
     tagName: 'outletProductTemperatureAverage',
     scale: scaleTemperature,
   },
-  { address: 8, tagName: 'airPlenumTemperature', scale: scaleTemperature },
-  { address: 9, tagName: 'dischargeRateIn', scale: scaleRate },
-  { address: 10, tagName: 'dmRateOutput', scale: scaleRate },
+  { address: 8, tagName: 'airPlenumTemperature', scale: scaleBy10 },
+  { address: 9, tagName: 'dischargeRateIn', scale: scaleBy10 },
+  { address: 10, tagName: 'dmRateOutput', scale: scalePercentage },
   { address: 11, tagName: 'notReadyReason', scale: noScale },
   { address: 12, tagName: 'aliveBit', scale: noScale },
   { address: 13, tagName: 'controlMode', scale: noScale },
@@ -25,7 +25,7 @@ const registers = [
   { address: 19, tagName: 'controllerState', scale: noScale },
   { address: 20, tagName: 'modelPredictedMoisture', scale: scalePercentage },
   { address: 21, tagName: 'autoFirstLoad', scale: noScale },
-  { address: 22, tagName: 'modelSuggestedRate', scale: scaleRate },
+  { address: 22, tagName: 'modelSuggestedRate', scale: scaleBy10 },
   { address: 23, tagName: 'inletAndOutletMoistureAlarmStates', scale: noScale },
   {
     address: 24,

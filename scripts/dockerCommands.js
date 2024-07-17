@@ -33,9 +33,30 @@ const commands = {
   runProd: `docker run -d -p ${process.env.PORT}:${process.env.PORT} --name beaglebone-app --device=/dev/ttyS2 --env-file ${dockerProdEnvFile} ${dockerProdImage}`,
 };
 
+// Function to check if a container is running and stop/remove it if necessary
+function handleExistingContainer(containerName) {
+  const isRunning =
+    shell.exec(
+      `docker inspect --format="{{.State.Running}}" ${containerName}`,
+      { silent: true }
+    ).code === 0;
+  if (isRunning) {
+    console.log(
+      `Container ${containerName} is already running. Stopping and removing it...`
+    );
+    shell.exec(`docker stop ${containerName}`);
+    shell.exec(`docker rm ${containerName}`);
+  } else {
+    console.log(`Container ${containerName} does not exist or is not running.`);
+  }
+}
+
 // Run command
 const command = process.argv[2];
 if (commands[command]) {
+  const containerName =
+    command === 'runProd' ? 'beaglebone-app' : 'beaglebone-app-dev';
+  handleExistingContainer(containerName);
   shell.exec(commands[command]);
 } else {
   console.error(`Invalid command: ${command}`);

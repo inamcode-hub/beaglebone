@@ -16,6 +16,7 @@ export function initWebSocketClient() {
       logger.info(
         `WebSocket client connecting to ${process.env.WEBSOCKET_SERVER_URL}`
       );
+
       ws.on('open', async () => {
         logger.info('WebSocket connection established');
         try {
@@ -39,6 +40,7 @@ export function initWebSocketClient() {
 
       ws.on('error', (error) => {
         handleError(ws, error);
+        ws.close(); // Close the websocket to trigger the 'close' event and reconnection
       });
     } catch (error) {
       handleError(ws, error);

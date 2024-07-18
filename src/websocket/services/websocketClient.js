@@ -6,9 +6,61 @@ import { sendMessage, handleError } from '../utils/websocketUtils.js';
 import MESSAGE_TYPES from '../constants/messageTypes.js';
 
 const RECONNECT_INTERVAL = 5000;
+const HEARTBEAT_INTERVAL = 10000; // Send ping every 10 seconds
+const HEARTBEAT_TIMEOUT = 15000; // Wait 15 seconds for pong
 
 export function initWebSocketClient() {
   let ws;
+  let heartbeatTimeout;
+  let heartbeatInterval;
+  let reconnectTimeout;
+  let deviceSerialNumber = 'Unknown';
+
+  async function initializeSerialNumber() {
+    try {
+      deviceSerialNumber = await readSerialNumber();
+      logger.info(`Device serial number initialized: ${deviceSerialNumber}`);
+    } catch (error) {
+      logger.error(`Failed to read serial number: ${error.message}`);
+    }
+  }
+
+  function sendPing() {
+    if (ws.readyState === WebSocket.OPEN) {
+      logger.info('Sending PING to server');
+      ws.send(
+        JSON.stringify({
+          type: 'PING',
+          data: { serialNumber: deviceSerialNumber, model: 'DM510' },
+        })
+      );
+      heartbeatTimeout = setTimeout(() => {
+        logger.error(
+          'No PONG received within timeout. Terminating connection.'
+        );
+        ws.terminate();
+      }, HEARTBEAT_TIMEOUT);
+    }
+  }
+
+  function clearHeartbeat() {
+    if (heartbeatTimeout) {
+      clearTimeout(heartbeatTimeout);
+      heartbeatTimeout = null;
+    }
+    if (heartbeatInterval) {
+      clearInterval(heartbeatInterval);
+      heartbeatInterval = null;
+    }
+  }
+
+  function attemptReconnect() {
+    clearHeartbeat();
+    if (reconnectTimeout) {
+      clearTimeout(reconnectTimeout);
+    }
+    reconnectTimeout = setTimeout(connect, RECONNECT_INTERVAL);
+  }
 
   async function connect() {
     try {
@@ -19,32 +71,38 @@ export function initWebSocketClient() {
 
       ws.on('open', async () => {
         logger.info('WebSocket connection established');
-        try {
-          const deviceSerialNumber = await readSerialNumber();
-          sendMessage(ws, MESSAGE_TYPES.DEVICE_CONNECT, {
-            serialNumber: deviceSerialNumber || 'Unknown',
-          });
-        } catch (error) {
-          handleError(ws, error);
-        }
+        await initializeSerialNumber();
+        sendMessage(ws, MESSAGE_TYPES.DEVICE_CONNECT, {
+          serialNumber: deviceSerialNumber || 'Unknown',
+          model: 'DM510',
+        });
+        clearHeartbeat();
+        heartbeatInterval = setInterval(sendPing, HEARTBEAT_INTERVAL); // Start sending pings
       });
 
       ws.on('message', (message) => {
-        handleMessage(ws, message).catch((error) => handleError(ws, error));
+        const parsedMessage = JSON.parse(message);
+        if (parsedMessage.type === 'PONG') {
+          logger.info('Received PONG from server');
+          clearTimeout(heartbeatTimeout); // Clear the timeout on receiving pong
+        } else {
+          handleMessage(ws, message).catch((error) => handleError(ws, error));
+        }
       });
 
       ws.on('close', () => {
         logger.info('WebSocket connection closed. Attempting to reconnect...');
-        setTimeout(connect, RECONNECT_INTERVAL);
+        attemptReconnect();
       });
 
       ws.on('error', (error) => {
         handleError(ws, error);
-        ws.close(); // Close the websocket to trigger the 'close' event and reconnection
+        ws.close(); // Close the websocket to trigger the 'close' event and reconnections
+        attemptReconnect();
       });
     } catch (error) {
       handleError(ws, error);
-      setTimeout(connect, RECONNECT_INTERVAL);
+      attemptReconnect();
     }
   }
 

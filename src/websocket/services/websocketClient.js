@@ -8,12 +8,14 @@ import MESSAGE_TYPES from '../constants/messageTypes.js';
 const RECONNECT_INTERVAL = 5000;
 const HEARTBEAT_INTERVAL = 10000; // Send ping every 10 seconds
 const HEARTBEAT_TIMEOUT = 15000; // Wait 15 seconds for pong
+const CONNECTION_TIMEOUT = 10000; // Wait 10 seconds for connection establishment
 
 export function initWebSocketClient() {
   let ws;
   let heartbeatTimeout;
   let heartbeatInterval;
   let reconnectTimeout;
+  let connectionTimeout;
   let deviceSerialNumber = 'Unknown';
 
   async function initializeSerialNumber() {
@@ -54,8 +56,16 @@ export function initWebSocketClient() {
     }
   }
 
+  function clearConnectionTimeout() {
+    if (connectionTimeout) {
+      clearTimeout(connectionTimeout);
+      connectionTimeout = null;
+    }
+  }
+
   function attemptReconnect() {
     clearHeartbeat();
+    clearConnectionTimeout();
     if (reconnectTimeout) {
       clearTimeout(reconnectTimeout);
     }
@@ -69,8 +79,17 @@ export function initWebSocketClient() {
         `WebSocket client connecting to ${process.env.WEBSOCKET_SERVER_URL}`
       );
 
+      connectionTimeout = setTimeout(() => {
+        if (ws.readyState !== WebSocket.OPEN) {
+          logger.error('Connection attempt timed out. Retrying...');
+          ws.terminate();
+          attemptReconnect();
+        }
+      }, CONNECTION_TIMEOUT);
+
       ws.on('open', async () => {
         logger.info('WebSocket connection established');
+        clearConnectionTimeout();
         await initializeSerialNumber();
         sendMessage(ws, MESSAGE_TYPES.DEVICE_CONNECT, {
           serialNumber: deviceSerialNumber || 'Unknown',

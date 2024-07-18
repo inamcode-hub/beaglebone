@@ -40,7 +40,7 @@ function transferFiles() {
 
     console.log(`Transferring ${changedFiles.length} changed files...`);
 
-    // Upload changed files
+    // Upload changed files-
     changedFiles.forEach((file) => {
       const localFile = path.join(localPath, file);
       if (fs.existsSync(localFile)) {
@@ -48,7 +48,7 @@ function transferFiles() {
         scp2.scp(
           localFile,
           {
-            host: '192.168.1.136',
+            host: '192.168.1.71',
             username: 'debian',
             privateKey: fs.readFileSync(privateKeyPath, 'utf8'),
             path: remoteFile,

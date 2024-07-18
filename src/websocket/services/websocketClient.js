@@ -26,7 +26,7 @@ export function initWebSocketClient() {
   }
 
   function sendPing() {
-    if (ws.readyState === WebSocket.OPEN) {
+    if (ws && ws.readyState === WebSocket.OPEN) {
       logger.info('Sending PING to server');
       ws.send(
         JSON.stringify({
@@ -84,7 +84,7 @@ export function initWebSocketClient() {
         const parsedMessage = JSON.parse(message);
         if (parsedMessage.type === 'PONG') {
           logger.info('Received PONG from server');
-          clearTimeout(heartbeatTimeout); // Clear the timeout on receiving pong
+          clearTimeout(heartbeatTimeout);
         } else {
           handleMessage(ws, message).catch((error) => handleError(ws, error));
         }
@@ -96,11 +96,19 @@ export function initWebSocketClient() {
       });
 
       ws.on('error', (error) => {
+        logger.error(`WebSocket error: ${error.message}`);
         handleError(ws, error);
-        ws.close(); // Close the websocket to trigger the 'close' event and reconnections
-        attemptReconnect();
+        if (
+          ws.readyState !== WebSocket.CLOSED &&
+          ws.readyState !== WebSocket.CLOSING
+        ) {
+          ws.close();
+        } else {
+          attemptReconnect();
+        }
       });
     } catch (error) {
+      logger.error(`WebSocket connection error: ${error.message}`);
       handleError(ws, error);
       attemptReconnect();
     }

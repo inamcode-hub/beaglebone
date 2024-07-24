@@ -16,6 +16,7 @@ let heartbeatInterval;
 let reconnectTimeout;
 let connectionTimeout;
 let deviceSerialNumber = 'Unknown';
+let reconnectAttempts = 0;
 
 export async function initWebSocketClient() {
   deviceSerialNumber = await initializeSerialNumber();
@@ -41,7 +42,7 @@ function sendPing() {
         type: MESSAGE_TYPES.PING,
         data: {
           serialNumber: deviceSerialNumber,
-          model: process.env.DEVICE_MODEL,
+          model: process.env.DEVICE_MODEL || 'UnknownModel',
         },
       })
     );
@@ -76,7 +77,16 @@ function attemptReconnect() {
   if (reconnectTimeout) {
     clearTimeout(reconnectTimeout);
   }
-  reconnectTimeout = setTimeout(connect, RECONNECT_INTERVAL);
+  reconnectAttempts += 1;
+  if (reconnectAttempts > 5) {
+    logger.warn(
+      `Multiple reconnect attempts (${reconnectAttempts}), waiting longer before next attempt`
+    );
+    reconnectTimeout = setTimeout(connect, RECONNECT_INTERVAL * 2);
+    reconnectAttempts = 0;
+  } else {
+    reconnectTimeout = setTimeout(connect, RECONNECT_INTERVAL);
+  }
 }
 
 async function connect() {
@@ -113,13 +123,14 @@ function setupWebSocketEventHandlers() {
 async function onOpen() {
   logger.info('WebSocket connection established');
   clearConnectionTimeout();
+  reconnectAttempts = 0;
   await initializeSerialNumber();
   sendMessage(ws, MESSAGE_TYPES.DEVICE_CONNECT, {
     serialNumber: deviceSerialNumber || 'Unknown',
-    model: 'DM510',
+    model: process.env.DEVICE_MODEL || 'DM510',
   });
   clearHeartbeat();
-  heartbeatInterval = setInterval(sendPing, HEARTBEAT_INTERVAL); // Start sending pings
+  heartbeatInterval = setInterval(sendPing, HEARTBEAT_INTERVAL);
 }
 
 function onMessage(message) {

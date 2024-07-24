@@ -32,7 +32,7 @@ export function initWebSocketClient() {
       logger.info('Sending PING to server');
       ws.send(
         JSON.stringify({
-          type: 'PING',
+          type: MESSAGE_TYPES.PING,
           data: { serialNumber: deviceSerialNumber, model: 'DM510' },
         })
       );
@@ -101,7 +101,7 @@ export function initWebSocketClient() {
 
       ws.on('message', (message) => {
         const parsedMessage = JSON.parse(message);
-        if (parsedMessage.type === 'PONG') {
+        if (parsedMessage.type === MESSAGE_TYPES.PONG) {
           logger.info('Received PONG from server');
           clearTimeout(heartbeatTimeout);
         } else {

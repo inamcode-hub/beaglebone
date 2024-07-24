@@ -1,4 +1,6 @@
 import WebSocket from 'ws';
+import dns from 'dns';
+import util from 'util';
 import logger from '../../common/config/logger.js';
 import { readSerialNumber } from '../../modbus/services/modbusClient.js';
 import { handleMessage } from '../handlers/websocketMessageHandler.js';
@@ -125,9 +127,11 @@ async function onOpen() {
   clearConnectionTimeout();
   reconnectAttempts = 0;
   await initializeSerialNumber();
+  const ipAddress = process.env.HOST_IP || 'Unknown';
   sendMessage(ws, MESSAGE_TYPES.DEVICE_CONNECT, {
     serialNumber: deviceSerialNumber || 'Unknown',
     model: process.env.DEVICE_MODEL || 'DM510',
+    ipAddress: ipAddress,
   });
   clearHeartbeat();
   heartbeatInterval = setInterval(sendPing, HEARTBEAT_INTERVAL);

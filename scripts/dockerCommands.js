@@ -2,6 +2,7 @@ import path from 'path';
 import shell from 'shelljs';
 import dotenv from 'dotenv';
 import { fileURLToPath } from 'url';
+import { execSync } from 'child_process';
 
 // Determine the root directory
 const __filename = fileURLToPath(import.meta.url);
@@ -18,6 +19,14 @@ function quotePath(p) {
   return `"${p.replace(/\\/g, '/')}"`;
 }
 
+// Function to get host IP address
+function getHostIP() {
+  const ip = execSync("hostname -I | awk '{print $1}'").toString().trim();
+  return ip;
+}
+
+const hostIP = getHostIP();
+
 // Environment-specific configurations
 const dockerDevEnvFile = quotePath(path.join(rootDir, '.env.development'));
 const dockerProdEnvFile = quotePath(path.join(rootDir, '.env.production'));
@@ -28,9 +37,9 @@ const dockerProdImage = `${process.env.DOCKER_REPOSITORY_OWNER}/${process.env.DO
 // Docker commands
 const commands = {
   buildDev: `docker build --load -t ${dockerDevImage} -f Dockerfile.dev .`,
-  runDev: `docker run -p ${process.env.PORT}:${process.env.PORT} --name beaglebone-app-dev --device=/dev/ttyS2 --env-file ${dockerDevEnvFile} -v ${dockerDevVolume} ${dockerDevImage}`,
+  runDev: `docker run --network host --name beaglebone-app-dev --device=/dev/ttyS2 --env-file ${dockerDevEnvFile} -v ${dockerDevVolume} -e HOST_IP=${hostIP} ${dockerDevImage}`,
   buildProd: `docker build --load -t ${dockerProdImage} -f Dockerfile .`,
-  runProd: `docker run -d -p ${process.env.PORT}:${process.env.PORT} --name beaglebone-app --device=/dev/ttyS2 --env-file ${dockerProdEnvFile} ${dockerProdImage}`,
+  runProd: `docker run --network host -d --name beaglebone-app --device=/dev/ttyS2 --env-file ${dockerProdEnvFile} -e HOST_IP=${hostIP} ${dockerProdImage}`,
 };
 
 // Function to check if a container is running and stop/remove it if necessary

@@ -28,7 +28,6 @@ async function connect() {
 function close() {
   try {
     if (client.isOpen) {
-      logger.info('Closing Modbus client');
       client.close();
       logger.info('Closed Modbus client');
     } else {

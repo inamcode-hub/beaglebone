@@ -3,10 +3,9 @@ import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
 import logger from './common/config/logger.js';
-import { initWebSocketServer } from './websocket/websocketServer.js';
-import { initWebSocketClient } from './websocket/services/websocketClient.js';
+import { initWebSocketClient } from './websocket/websocketClient.js';
 
-// Convert import.meta.url to a file path
+// Convert import.meta.url to a file pat
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -19,15 +18,11 @@ if (fs.existsSync(versionPath)) {
   version = fs.readFileSync(versionPath, 'utf8').trim();
 }
 
-// Add routes and other middleware here
-
-// Initialize WebSocket server
-const server = app.listen(port, () => {
-  logger.info(`Server is listening on port ${port}`);
-  logger.info(`Running latest version ${version}`);
+app.get('/', (req, res) => {
+  res.json({ version });
 });
 
-initWebSocketServer(server);
-
-// Initialize WebSocket client
-initWebSocketClient();
+app.listen(port, () => {
+  logger.info(`App listening on port ${port}`);
+  initWebSocketClient();
+});

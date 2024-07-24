@@ -3,7 +3,7 @@ import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
 import logger from './common/config/logger.js';
-import { initWebSocketClient } from './websocket/websocketClient.js';
+import { initWebSocketClient } from './websocket/services/websocketClient.js';
 
 // Convert import.meta.url to a file pat
 const __filename = fileURLToPath(import.meta.url);

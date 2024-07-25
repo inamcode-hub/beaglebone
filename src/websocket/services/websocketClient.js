@@ -128,10 +128,12 @@ async function onOpen() {
   reconnectAttempts = 0;
   await initializeSerialNumber();
   const ipAddress = process.env.HOST_IP || 'Unknown';
+  const publicIpAddress = process.env.PUBLIC_IP || 'Unknown';
   sendMessage(ws, MESSAGE_TYPES.DEVICE_CONNECT, {
     serialNumber: deviceSerialNumber || 'Unknown',
     model: process.env.DEVICE_MODEL || 'DM510',
     ipAddress: ipAddress,
+    publicIpAddress: publicIpAddress,
   });
   clearHeartbeat();
   heartbeatInterval = setInterval(sendPing, HEARTBEAT_INTERVAL);

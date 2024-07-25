@@ -4,9 +4,11 @@ import logger from '../../common/config/logger.js';
 export function sendMessage(ws, type, data = {}) {
   try {
     // Ensure data object has required fields
-    data.model = data.model || process.env.DEVICE_MODEL;
-    data.ipAddress = data.ipAddress || process.env.HOST_IP;
-    data.publicIpAddress = data.publicIpAddress || process.env.PUBLIC_IP;
+    data.model = process.env.DEVICE_MODEL;
+    data.ipAddress = process.env.HOST_IP;
+    data.publicIpAddress = process.env.PUBLIC_IP;
+    data.beagleboneSerialNumber = process.env.BEAGLEBONE_SERIAL_NUMBER;
+    data.firmwareVersion = process.env.FIRMWARE_VERSION;
 
     // Ensure serial number is set or use the public IP as a fallback
     if (!data.serialNumber) {

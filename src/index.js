@@ -13,10 +13,11 @@ const app = express();
 const port = process.env.PORT || 3000;
 
 const versionPath = path.join(__dirname, '../VERSION');
-let version = 'unknown';
+let version;
 if (fs.existsSync(versionPath)) {
   version = fs.readFileSync(versionPath, 'utf8').trim();
 }
+process.env.FIRMWARE_VERSION = version;
 
 app.get('/', (req, res) => {
   res.json({ version });

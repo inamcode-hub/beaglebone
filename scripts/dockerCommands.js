@@ -33,7 +33,28 @@ async function getPublicIP() {
     return response.data.ip;
   } catch (error) {
     console.error('Error fetching public IP:', error);
-    return getHostIP();
+    return null;
+  }
+}
+
+// Function to get unique identifier (serial number or MAC address)
+//
+function getUniqueIdentifier() {
+  try {
+    const serialNumber = execSync(
+      "cat /proc/cpuinfo | grep Serial | awk '{print $3}'"
+    )
+      .toString()
+      .trim();
+    if (serialNumber) {
+      return serialNumber;
+    } else {
+      console.error('Unable to retrieve serial number.');
+      return null;
+    }
+  } catch (error) {
+    console.error('Error fetching unique identifier:', error);
+    return null;
   }
 }
 
@@ -46,6 +67,15 @@ async function main() {
     process.exit(1);
   }
 
+  const uniqueIdentifier = getUniqueIdentifier();
+  if (!uniqueIdentifier) {
+    console.error('Unable to fetch unique identifier.');
+    process.exit(1);
+  }
+
+  // Add the unique identifier to the environment variables
+  process.env.BEAGLEBONE_SERIAL_NUMBER = uniqueIdentifier;
+
   // Environment-specific configurations
   const dockerDevEnvFile = quotePath(path.join(rootDir, '.env.development'));
   const dockerProdEnvFile = quotePath(path.join(rootDir, '.env.production'));
@@ -56,9 +86,9 @@ async function main() {
   // Docker commands
   const commands = {
     buildDev: `docker build --load -t ${dockerDevImage} -f Dockerfile.dev .`,
-    runDev: `docker run --network host --name beaglebone-app-dev --device=/dev/ttyS2 --env-file ${dockerDevEnvFile} -v ${dockerDevVolume} -e HOST_IP=${hostIP} -e PUBLIC_IP=${publicIP} ${dockerDevImage}`,
+    runDev: `docker run --network host --name beaglebone-app-dev --device=/dev/ttyS2 --env-file ${dockerDevEnvFile} -v ${dockerDevVolume} -e HOST_IP=${hostIP} -e PUBLIC_IP=${publicIP} -e BEAGLEBONE_SERIAL_NUMBER=${uniqueIdentifier} ${dockerDevImage}`,
     buildProd: `docker build --load -t ${dockerProdImage} -f Dockerfile .`,
-    runProd: `docker run --network host -d --name beaglebone-app --device=/dev/ttyS2 --env-file ${dockerProdEnvFile} -e HOST_IP=${hostIP} -e PUBLIC_IP=${publicIP} ${dockerProdImage}`,
+    runProd: `docker run --network host -d --name beaglebone-app --device=/dev/ttyS2 --env-file ${dockerProdEnvFile} -e HOST_IP=${hostIP} -e PUBLIC_IP=${publicIP} -e BEAGLEBONE_SERIAL_NUMBER=${uniqueIdentifier} ${dockerProdImage}`,
   };
 
   // Function to check if a container is running and stop/remove it if necessary

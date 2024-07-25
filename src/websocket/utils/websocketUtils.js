@@ -1,30 +1,79 @@
+import os from 'os';
+import fs from 'fs';
+import diskusage from 'diskusage';
 import WebSocket from 'ws';
 import logger from '../../common/config/logger.js';
 
 export function sendMessage(ws, type, data = {}) {
   try {
-    // Ensure data object has required fields
-    data.model = process.env.DEVICE_MODEL;
-    data.ipAddress = process.env.HOST_IP;
-    data.publicIpAddress = process.env.PUBLIC_IP;
-    data.beagleboneSerialNumber = process.env.BEAGLEBONE_SERIAL_NUMBER;
-    data.firmwareVersion = process.env.FIRMWARE_VERSION;
+    // Gather additional system information
+    const cpuUsage = os.loadavg();
+    const memoryUsage = {
+      total: os.totalmem(),
+      free: os.freemem(),
+    };
+    const networkInterfaces = os.networkInterfaces();
+    const runningProcesses = fs
+      .readdirSync('/proc')
+      .filter((pid) => /^\d+$/.test(pid)).length; // Example for Linux
 
-    // Ensure serial number is set or use the public IP as a fallback
-    if (!data.serialNumber) {
-      data.serialNumber = process.env.PUBLIC_IP;
+    // Get disk usage information from the host
+    const diskPath = '/host-root'; // Path to the host's root filesystem
+    let diskUsageInfo = {};
+    try {
+      const { total, free } = diskusage.checkSync(diskPath);
+      diskUsageInfo = { total, free };
+    } catch (err) {
+      logger.error(`Error getting disk usage: ${err.message}`);
+      diskUsageInfo = { total: 0, free: 0 };
+    }
+
+    // Default data object with essential fields
+    const essentialData = {
+      model: process.env.DEVICE_MODEL || 'UnknownModel',
+      publicIpAddress: process.env.PUBLIC_IP || 'UnknownPublicIP',
+      beagleboneSerialNumber:
+        process.env.BEAGLEBONE_SERIAL_NUMBER || 'UnknownBeagleBoneSerial',
+    };
+
+    // Additional data for DEVICE_CONNECT type
+    const additionalData = {
+      ipAddress: process.env.HOST_IP || 'UnknownIP',
+      deviceStatus: 'online',
+      uptime: process.uptime(),
+      cpuUsage,
+      memoryUsage,
+      diskUsage: diskUsageInfo,
+      networkInterfaces,
+      runningProcesses,
+      firmwareVersion: process.env.FIRMWARE_VERSION || 'UnknownVersion',
+    };
+
+    // Merge incoming data with essentialData
+    let messageData = { ...essentialData, ...data };
+
+    // Add additional data if the type is DEVICE_CONNECT
+    if (type === 'DEVICE_CONNECT') {
+      messageData = { ...messageData, ...additionalData };
+    }
+
+    // Ensure serial number is set or use the BeagleBone serial number as a fallback
+    if (!messageData.serialNumber) {
+      messageData.serialNumber = messageData.beagleboneSerialNumber;
       logger.warn(
-        `Serial number not provided. Using public IP address as serial number: ${data.serialNumber}`
+        `Serial number not provided. Using BeagleBone serial number: ${messageData.serialNumber}`
       );
     }
 
     // Construct the message
-    const message = JSON.stringify({ type, data });
+    const message = JSON.stringify({ type, data: messageData });
 
     // Send the message if the WebSocket is open
     if (ws.readyState === WebSocket.OPEN) {
       ws.send(message);
-      logger.info(`Sent message to ${data.model} WebSocket client: ${message}`);
+      logger.info(
+        `Sent message to ${messageData.model} WebSocket client: ${message}`
+      );
     } else {
       logger.error('WebSocket is not open. Unable to send message.');
     }

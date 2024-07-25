@@ -32,22 +32,17 @@ async function initializeSerialNumber() {
     return serialNumber;
   } catch (error) {
     logger.error(`Failed to read serial number: ${error.message}`);
-    return 'Unknown';
+    return null;
   }
 }
 
 function sendPing() {
   if (ws && ws.readyState === WebSocket.OPEN) {
     logger.info('Sending PING to server');
-    ws.send(
-      JSON.stringify({
-        type: MESSAGE_TYPES.PING,
-        data: {
-          serialNumber: deviceSerialNumber,
-          model: process.env.DEVICE_MODEL,
-        },
-      })
-    );
+    sendMessage(ws, MESSAGE_TYPES.PING, {
+      serialNumber: deviceSerialNumber,
+    });
+
     heartbeatTimeout = setTimeout(() => {
       logger.error('No PONG received within timeout. Terminating connection.');
       ws.terminate();
@@ -131,9 +126,6 @@ async function onOpen() {
   const publicIpAddress = process.env.PUBLIC_IP;
   sendMessage(ws, MESSAGE_TYPES.DEVICE_CONNECT, {
     serialNumber: deviceSerialNumber,
-    model: process.env.DEVICE_MODEL,
-    ipAddress: ipAddress,
-    publicIpAddress: publicIpAddress,
   });
   clearHeartbeat();
   heartbeatInterval = setInterval(sendPing, HEARTBEAT_INTERVAL);

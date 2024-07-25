@@ -33,7 +33,7 @@ async function getPublicIP() {
     return response.data.ip;
   } catch (error) {
     console.error('Error fetching public IP:', error);
-    return null;
+    return getHostIP();
   }
 }
 

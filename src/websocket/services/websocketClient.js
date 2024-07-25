@@ -1,6 +1,4 @@
 import WebSocket from 'ws';
-import dns from 'dns';
-import util from 'util';
 import logger from '../../common/config/logger.js';
 import { readSerialNumber } from '../../modbus/services/modbusClient.js';
 import { handleMessage } from '../handlers/websocketMessageHandler.js';

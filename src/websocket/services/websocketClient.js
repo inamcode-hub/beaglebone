@@ -17,7 +17,7 @@ let heartbeatTimeout;
 let heartbeatInterval;
 let reconnectTimeout;
 let connectionTimeout;
-let deviceSerialNumber = 'Unknown';
+let deviceSerialNumber = '';
 let reconnectAttempts = 0;
 
 export async function initWebSocketClient() {
@@ -44,7 +44,7 @@ function sendPing() {
         type: MESSAGE_TYPES.PING,
         data: {
           serialNumber: deviceSerialNumber,
-          model: process.env.DEVICE_MODEL || 'UnknownModel',
+          model: process.env.DEVICE_MODEL,
         },
       })
     );
@@ -127,11 +127,11 @@ async function onOpen() {
   clearConnectionTimeout();
   reconnectAttempts = 0;
   await initializeSerialNumber();
-  const ipAddress = process.env.HOST_IP || 'Unknown';
-  const publicIpAddress = process.env.PUBLIC_IP || 'Unknown';
+  const ipAddress = process.env.HOST_IP;
+  const publicIpAddress = process.env.PUBLIC_IP;
   sendMessage(ws, MESSAGE_TYPES.DEVICE_CONNECT, {
-    serialNumber: deviceSerialNumber || 'Unknown',
-    model: process.env.DEVICE_MODEL || 'DM510',
+    serialNumber: deviceSerialNumber,
+    model: process.env.DEVICE_MODEL,
     ipAddress: ipAddress,
     publicIpAddress: publicIpAddress,
   });

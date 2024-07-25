@@ -1,8 +1,7 @@
 import logger from '../../common/config/logger.js';
 
-const Model = process.env.DEVICE_MODEL;
 export function sendMessage(ws, type, data) {
-  data.model = Model;
+  data.model = process.env.DEVICE_MODEL;
   data.ipAddress = process.env.HOST_IP;
   data.publicIpAddress = process.env.PUBLIC_IP;
   if (!data.serialNumber) {
@@ -13,7 +12,7 @@ export function sendMessage(ws, type, data) {
   }
   const message = JSON.stringify({ type, data });
   ws.send(message);
-  logger.info(`Sent message to ${Model} WebSocket client: ${message}`);
+  logger.info(`Sent message to ${data.model} WebSocket client: ${message}`);
 }
 export function handleError(ws, error) {
   const errorMessage = `WebSocket error: ${error.message}`;

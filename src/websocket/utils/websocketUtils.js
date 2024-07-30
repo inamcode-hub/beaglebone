@@ -1,6 +1,6 @@
 import os from 'os';
 import fs from 'fs';
-import diskusage from 'diskusage';
+import { execSync } from 'child_process';
 import WebSocket from 'ws';
 import logger from '../../common/config/logger.js';
 
@@ -17,11 +17,15 @@ export function sendMessage(ws, type, data = {}) {
       .readdirSync('/proc')
       .filter((pid) => /^\d+$/.test(pid)).length; // Example for Linux
 
-    // Get disk usage information from the host
-    const diskPath = '/host-root'; // Path to the host's root filesystem
+    // Get disk usage information using the df command
+    const diskPath = '/'; // Path to the root filesystem
     let diskUsageInfo = {};
     try {
-      const { total, free } = diskusage.checkSync(diskPath);
+      const dfOutput = execSync(`df -k ${diskPath}`).toString();
+      const lines = dfOutput.split('\n');
+      const diskData = lines[1].split(/\s+/);
+      const total = parseInt(diskData[1], 10) * 1024;
+      const free = parseInt(diskData[3], 10) * 1024;
       diskUsageInfo = { total, free };
     } catch (err) {
       logger.error(`Error getting disk usage: ${err.message}`);

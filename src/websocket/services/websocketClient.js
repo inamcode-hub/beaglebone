@@ -120,8 +120,6 @@ async function onOpen() {
   clearConnectionTimeout();
   reconnectAttempts = 0;
   await initializeSerialNumber();
-  const ipAddress = process.env.HOST_IP;
-  const publicIpAddress = process.env.PUBLIC_IP;
   sendMessage(ws, MESSAGE_TYPES.DEVICE_CONNECT, {
     serialNumber: deviceSerialNumber,
   });

@@ -33,6 +33,9 @@
     "nodemon": "^2.0.7",
     "shelljs": "^0.8.4"
   },
+  "optionalDependencies": {
+    "fsevents": "^2.3.3"
+  },
   "author": "Inam ul Rehman",
   "license": "ISC"
 }

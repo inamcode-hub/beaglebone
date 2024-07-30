@@ -6,7 +6,7 @@ WORKDIR /usr/src/app
 
 # Install dependencies
 COPY package*.json ./
-RUN npm install && npm install -g nodemon 
+RUN npm install --no-optional && npm install -g nodemon
 
 # Copy the application files
 COPY . .

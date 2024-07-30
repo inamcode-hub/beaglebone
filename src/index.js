@@ -22,8 +22,6 @@ process.env.FIRMWARE_VERSION = version;
 app.get('/', (req, res) => {
   res.json({ version });
 });
-console.log('Hello World');
-console.log(`port: ${port}`);
 app.listen(port, () => {
   logger.info(`App listening on port ${port}`);
   initWebSocketClient();

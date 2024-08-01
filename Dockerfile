@@ -10,6 +10,12 @@ COPY package*.json ./
 # Install dependencies (including devDependencies)
 RUN npm install --no-optional
 
+# Install sudo (remove systemd-sysv if not needed)
+RUN apt-get update && apt-get install -y sudo
+
+# Add the docker user and give it sudo privileges
+RUN useradd -m docker && echo "docker:docker" | chpasswd && adduser docker sudo
+
 # Copy the rest of the application code
 COPY . .
 

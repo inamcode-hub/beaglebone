@@ -5,7 +5,6 @@ import {
 import { sendMessage, handleError } from '../utils/websocketUtils.js';
 import MESSAGE_TYPES from '../constants/messageTypes.js';
 import { exec } from 'child_process';
-import e from 'express';
 import logger from '../../common/config/logger.js';
 async function handleRequestSensorData(ws) {
   try {

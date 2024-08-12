@@ -1,19 +1,35 @@
 import Sensor from '../models/sensorModel.js';
 import logger from '../../common/config/logger.js';
+import { getModbusData } from '../../modbus/controllers/modbusController.js';
 
-export function startCollectingData() {
-  setInterval(() => {
-    const sensorData = {
-      name: 'Temperature Sensor',
-      value: Math.random() * 100, // Random value for demo
-    };
+/**
+ * Starts the process of collecting sensor data at regular intervals.
+ * Data is retrieved from the Modbus controller, processed, and saved to the database.
+ */
+export async function startCollectingData() {
+  setInterval(async () => {
+    try {
+      // Fetch data from the Modbus controller
+      const modbusData = await getModbusData();
 
-    Sensor.create(sensorData, (err, newSensorData) => {
-      if (err) {
-        logger.error(`Failed to record sensor data: ${err.message}`);
-      } else {
-        logger.info(`Recorded sensor data: ${JSON.stringify(newSensorData)}`);
-      }
-    });
+      // Filter out "write only" values and transform the array into an object
+      const data = modbusData
+        .filter((item) => !item.tagName.endsWith('WriteOnly'))
+        .reduce((acc, item) => {
+          acc[item.tagName] = item.value;
+          return acc;
+        }, {});
+
+      // Record the processed data in the database
+      Sensor.create(data, (err, newSensorData) => {
+        if (err) {
+          logger.error(`Failed to record sensor data: ${err.message}`);
+        } else {
+          logger.info(`Recorded sensor data: ${JSON.stringify(newSensorData)}`);
+        }
+      });
+    } catch (error) {
+      logger.error(`Error in collecting sensor data: ${error.message}`);
+    }
   }, 1000); // Record data every second
 }

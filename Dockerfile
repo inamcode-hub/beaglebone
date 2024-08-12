@@ -1,5 +1,5 @@
 # Use the official Node.js image as a base
-FROM node:14
+FROM arm32v7/node:14
 
 # Create and change to the app directory
 WORKDIR /usr/src/app

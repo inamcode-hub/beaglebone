@@ -22,3 +22,15 @@ export const getSensorData = (req, res) => {
     res.json(sensorData);
   });
 };
+
+export const getMostRecentSensorData = (req, res) => {
+  Sensor.getMostRecent((err, sensorData) => {
+    if (err) {
+      return res.status(500).json({ error: err.message });
+    }
+    if (sensorData.length === 0) {
+      return res.status(404).json({ message: 'No sensor data found' });
+    }
+    res.json(sensorData[0]);
+  });
+};

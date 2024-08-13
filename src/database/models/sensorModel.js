@@ -42,6 +42,18 @@ const Sensor = {
       callback
     );
   },
+
+  /**
+   * Retrieve the most recent sensor data record from the database.
+   * @param {Function} callback - A callback function to handle the response.
+   */
+  getMostRecent: (callback) => {
+    db.sensors
+      .find({})
+      .sort({ timestamp: -1 }) // Sort by timestamp in descending order
+      .limit(1) // Limit the result to one record
+      .exec(callback);
+  },
 };
 
 export default Sensor;

@@ -14,7 +14,7 @@ export async function startCollectingData() {
 
       // Filter out "write only" values and transform the array into an object
       const data = modbusData
-        .filter((item) => !item.tagName.endsWith('WriteOnly'))
+        // .filter((item) => !item.tagName.endsWith('WriteOnly'))
         .reduce((acc, item) => {
           acc[item.tagName] = item.value;
           return acc;

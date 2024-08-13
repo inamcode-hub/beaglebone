@@ -3,6 +3,8 @@ import Sensor from '../models/sensorModel.js';
 import logger from '../../common/config/logger.js';
 
 const MAX_CHUNK_SIZE = 1024 * 1024; // 1MB in bytes
+const MAX_RETRIES = 3; // Maximum number of retry attempts
+const RETRY_DELAY = 2000; // Delay between retries in milliseconds
 
 export function uploadDataToServer() {
   // Fetch all sensor data from the database
@@ -31,8 +33,7 @@ export function uploadDataToServer() {
       chunks.push(jsonData.slice(start, end));
     }
 
-    // Upload each chunk sequentially
-    const uploadChunk = (chunkIndex) => {
+    const uploadChunk = (chunkIndex, retryCount = 0) => {
       if (chunkIndex >= chunks.length) {
         logger.info('All chunks uploaded successfully.');
 
@@ -53,7 +54,9 @@ export function uploadDataToServer() {
 
       // Upload the current chunk
       axios
-        .post('http://yourserver.com/api/upload', { data: chunks[chunkIndex] })
+        .post('https://www.dryersmaster.com/API/devices/upload', {
+          data: chunks[chunkIndex],
+        })
         .then((response) => {
           logger.info(
             `Chunk ${chunkIndex + 1} uploaded successfully: ${response.status}`
@@ -61,9 +64,21 @@ export function uploadDataToServer() {
           uploadChunk(chunkIndex + 1); // Upload the next chunk
         })
         .catch((error) => {
-          logger.error(
-            `Failed to upload chunk ${chunkIndex + 1}: ${error.message}`
-          );
+          if (retryCount < MAX_RETRIES) {
+            const delay = RETRY_DELAY * Math.pow(2, retryCount); // Exponential backoff
+            logger.warn(
+              `Retrying upload of chunk ${chunkIndex + 1} (attempt ${
+                retryCount + 1
+              }) after ${delay}ms...`
+            );
+            setTimeout(() => uploadChunk(chunkIndex, retryCount + 1), delay);
+          } else {
+            logger.error(
+              `Failed to upload chunk ${
+                chunkIndex + 1
+              } after ${MAX_RETRIES} attempts: ${error.message}`
+            );
+          }
         });
     };
 

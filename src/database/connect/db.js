@@ -28,18 +28,26 @@ export const dbConnect = () => {
     } else {
       logger.info('Database connected and loaded.');
 
-      // Start collecting sensor data
-      startCollectingData();
+      // Start collecting sensor data every second
+      setInterval(() => {
+        startCollectingData();
+      }, 1 * 1000); // Every 1 second
 
-      // Rotate old data every 24 hours
+      // Rotate old data every day
       setInterval(() => {
         rotateOldData();
-      }, 24 * 60 * 60 * 1000); // Every 24 hours
+      }, 24 * 60 * 60 * 1000); // Every 24 hours (1 day)
 
       // Upload data to the server every hour
       setInterval(() => {
         uploadDataToServer();
-      }, 60 * 60 * 1000); // Every hour
+      }, 60 * 60 * 1000); // Every 1 hour
+
+      // Clean compact the database every 7 days
+      setInterval(() => {
+        db.sensors.persistence.compactDatafile();
+        logger.info('Database compacted successfully.');
+      }, 7 * 24 * 60 * 60 * 1000); // Every 7 days
     }
   });
 };

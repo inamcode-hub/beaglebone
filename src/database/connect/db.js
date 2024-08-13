@@ -38,6 +38,9 @@ export const dbConnect = () => {
         rotateOldData();
       }, 24 * 60 * 60 * 1000); // Every 24 hours (1 day)
 
+      // Immediately upload data to the server upon connection
+      uploadDataToServer();
+
       // Upload data to the server every hour
       setInterval(() => {
         uploadDataToServer();

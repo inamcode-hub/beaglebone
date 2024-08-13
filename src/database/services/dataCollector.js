@@ -25,7 +25,7 @@ export async function startCollectingData() {
         if (err) {
           logger.error(`Failed to record sensor data: ${err.message}`);
         } else {
-          logger.info(`Recorded sensor data: ${JSON.stringify(newSensorData)}`);
+          // logger.info(`Recorded sensor data: ${JSON.stringify(newSensorData)}`);
         }
       });
     } catch (error) {

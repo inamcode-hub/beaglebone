@@ -7,7 +7,7 @@ const client = new ModbusRTU();
 async function connect() {
   try {
     if (!client.isOpen) {
-      logger.info('Attempting to connect to Modbus client');
+      // logger.info('Attempting to connect to Modbus client');
       await client.connectRTUBuffered('/dev/ttyS2', {
         baudRate: 19200,
         parity: 'none',
@@ -16,9 +16,9 @@ async function connect() {
       });
       client.setID(1);
       client.setTimeout(20000);
-      logger.info('Modbus client connected successfully to /dev/ttyS2');
+      // logger.info('Modbus client connected successfully to /dev/ttyS2');
     } else {
-      logger.info('Modbus client is already connected');
+      // logger.info('Modbus client is already connected');
     }
   } catch (error) {
     throw modbusErrorHandler(error, 'Modbus connect');
@@ -29,9 +29,9 @@ function close() {
   try {
     if (client.isOpen) {
       client.close();
-      logger.info('Closed Modbus client');
+      // logger.info('Closed Modbus client');
     } else {
-      logger.info('Modbus client was already closed');
+      // logger.info('Modbus client was already closed');
     }
   } catch (error) {
     logger.error(`Error closing Modbus client: ${error.message}`);
@@ -66,9 +66,9 @@ async function readSerialNumber() {
 
 async function writeRegister(registerAddress, value) {
   try {
-    logger.info(
-      `Attempting to write to register ${registerAddress} with value ${value}`
-    );
+    // logger.info(
+    //   `Attempting to write to register ${registerAddress} with value ${value}`
+    // );
     await connect();
     const result = await client.writeRegister(registerAddress, value);
     logger.info(`Register ${result.address} updated to ${result.value}`);

@@ -75,9 +75,11 @@ export function sendMessage(ws, type, data = {}) {
     // Send the message if the WebSocket is open
     if (ws.readyState === WebSocket.OPEN) {
       ws.send(message);
-      logger.info(
-        `Sent message to ${messageData.model} WebSocket client: ${message}`
-      );
+      if (type !== 'PING') {
+        logger.info(
+          `Sent message to WebSocket client: ${JSON.stringify(messageData)}`
+        );
+      }
     } else {
       logger.error('WebSocket is not open. Unable to send message.');
     }

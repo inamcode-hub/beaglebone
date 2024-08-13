@@ -24,7 +24,7 @@ const Sensor = {
 
   /**
    * Remove all sensor data records from the database.
-   * @param {Function} callback - A callback function to handle the response.
+   * @param {Function} callback - A callback function to handle the response./
    */
   removeAll: (callback) => {
     db.sensors.remove({}, { multi: true }, callback);

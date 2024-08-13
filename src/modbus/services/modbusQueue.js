@@ -1,4 +1,4 @@
-const logger = require('../../logger');
+import logger from '../../common/config/logger.js';
 
 class ModbusQueue {
   constructor() {
@@ -33,3 +33,4 @@ class ModbusQueue {
 const modbusQueue = new ModbusQueue();
 
 export default modbusQueue;
+//

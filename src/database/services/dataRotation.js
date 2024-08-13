@@ -3,7 +3,7 @@ import logger from '../../common/config/logger.js';
 
 export function rotateOldData() {
   const oldDate = new Date();
-  oldDate.setSeconds(oldDate.getSeconds() - 20); // Set to 20 seconds ago
+  oldDate.setDate(oldDate.getDate() - 7); // Set to 7 days ago
 
   Sensor.deleteOldRecords(oldDate, (err, numRemoved) => {
     if (err) {

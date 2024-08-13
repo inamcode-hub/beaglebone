@@ -12,6 +12,7 @@ The `db.js` file is responsible for initializing the database and starting all d
 - **Starting data collection** at regular intervals.
 - **Rotating old data** every 24 hours.
 - **Uploading data** to a remote server every hour.
+- **Cleaning/compacting** the database every 7 days to maintain performance.
 
 #### Code:
 
@@ -58,6 +59,12 @@ export const dbConnect = () => {
       setInterval(() => {
         uploadDataToServer();
       }, 60 * 60 * 1000); // Every hour
+
+      // Clean/compact the database every 7 days
+      setInterval(() => {
+        db.sensors.persistence.compactDatafile();
+        logger.info('Database compacted successfully.');
+      }, 7 * 24 * 60 * 60 * 1000); // Every 7 days
     }
   });
 };
@@ -69,29 +76,35 @@ export default db;
 
 ### `dataCollector.js`
 
-This service is responsible for collecting sensor data at regular intervals. The data is recorded in the local database every second.
+This service is responsible for collecting sensor data at regular intervals. The data is recorded in the local database every second by reading Modbus data.
 
 #### Code:
 
 ```javascript
 import Sensor from '../models/sensorModel.js';
 import logger from '../../common/config/logger.js';
+import { getModbusData } from '../../modbus/controllers/modbusController.js';
 
 export function startCollectingData() {
-  setInterval(() => {
-    const sensorData = {
-      name: 'Temperature Sensor',
-      value: Math.random() * 100, // Random value for demo
-      timestamp: new Date().toISOString(),
-    };
+  setInterval(async () => {
+    try {
+      const modbusData = await getModbusData();
 
-    Sensor.create(sensorData, (err, newSensorData) => {
-      if (err) {
-        logger.error(`Failed to record sensor data: ${err.message}`);
-      } else {
-        logger.info(`Recorded sensor data: ${JSON.stringify(newSensorData)}`);
-      }
-    });
+      const sensorData = {
+        data: modbusData,
+        timestamp: new Date().toISOString(),
+      };
+
+      Sensor.create(sensorData, (err, newSensorData) => {
+        if (err) {
+          logger.error(`Failed to record sensor data: ${err.message}`);
+        } else {
+          logger.info(`Recorded sensor data: ${JSON.stringify(newSensorData)}`);
+        }
+      });
+    } catch (error) {
+      logger.error(`Failed to fetch Modbus data: ${error.message}`);
+    }
   }, 1000); // Every 1 second
 }
 ```
@@ -109,10 +122,10 @@ import Sensor from '../models/sensorModel.js';
 import logger from '../../common/config/logger.js';
 
 export function rotateOldData() {
-  const twoWeeksAgo = new Date();
-  twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
+  const oldDate = new Date();
+  oldDate.setDate(oldDate.getDate() - 7); // Set to 7 days ago
 
-  Sensor.deleteOldRecords(twoWeeksAgo, (err, numRemoved) => {
+  Sensor.deleteOldRecords(oldDate, (err, numRemoved) => {
     if (err) {
       logger.error(`Failed to delete old sensor data: ${err.message}`);
     } else {
@@ -126,7 +139,7 @@ export function rotateOldData() {
 
 ### `dataUploader.js`
 
-This service is responsible for uploading data to a remote server every hour. After a successful upload, the data is removed from the local database.
+This service is responsible for uploading data to a remote server every hour. After a successful upload, the data is removed from the local database. The upload process handles large files by splitting them into chunks.
 
 #### Code:
 
@@ -136,6 +149,8 @@ import Sensor from '../models/sensorModel.js';
 import logger from '../../common/config/logger.js';
 
 const MAX_CHUNK_SIZE = 1024 * 1024; // 1MB in bytes
+const MAX_RETRIES = 3; // Maximum number of retry attempts
+const RETRY_DELAY = 2000; // Delay between retries in milliseconds
 
 export function uploadDataToServer() {
   // Fetch all sensor data from the database
@@ -164,8 +179,8 @@ export function uploadDataToServer() {
       chunks.push(jsonData.slice(start, end));
     }
 
-    // Upload each chunk sequentially
-    const uploadChunk = (chunkIndex) => {
+    // Function to upload each chunk with retry mechanism
+    const uploadChunk = (chunkIndex, retryCount = 0) => {
       if (chunkIndex >= chunks.length) {
         logger.info('All chunks uploaded successfully.');
 
@@ -186,7 +201,9 @@ export function uploadDataToServer() {
 
       // Upload the current chunk
       axios
-        .post('http://yourserver.com/api/upload', { data: chunks[chunkIndex] })
+        .post('https://www.dryersmaster.com/API/devices/upload', {
+          data: chunks[chunkIndex],
+        })
         .then((response) => {
           logger.info(
             `Chunk ${chunkIndex + 1} uploaded successfully: ${response.status}`
@@ -194,9 +211,21 @@ export function uploadDataToServer() {
           uploadChunk(chunkIndex + 1); // Upload the next chunk
         })
         .catch((error) => {
-          logger.error(
-            `Failed to upload chunk ${chunkIndex + 1}: ${error.message}`
-          );
+          if (retryCount < MAX_RETRIES) {
+            const delay = RETRY_DELAY * Math.pow(2, retryCount); // Exponential backoff
+            logger.warn(
+              `Retrying upload of chunk ${chunkIndex + 1} (attempt ${
+                retryCount + 1
+              }) after ${delay}ms...`
+            );
+            setTimeout(() => uploadChunk(chunkIndex, retryCount + 1), delay);
+          } else {
+            logger.error(
+              `Failed to upload chunk ${
+                chunkIndex + 1
+              } after ${MAX_RETRIES} attempts: ${error.message}`
+            );
+          }
         });
     };
 

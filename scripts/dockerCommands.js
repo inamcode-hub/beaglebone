@@ -1,24 +1,30 @@
 import path from 'path';
-import shell from 'shelljs';
-import dotenv from 'dotenv';
+import fs from 'fs';
 import { fileURLToPath } from 'url';
 import { execSync } from 'child_process';
-import axios from 'axios'; // Import axios
+import https from 'https';
 
 // Determine the root directory
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const rootDir = path.resolve(__dirname, '..');
 
-// Load environment variables from the appropriate .env file
-const envFilePath =
-  process.argv[2] === 'runProd' ? '.env.production' : '.env.development';
-dotenv.config({ path: path.join(rootDir, envFilePath) });
-
-// Function to quote paths properly for Docker
-function quotePath(p) {
-  return `"${p.replace(/\\/g, '/')}"`;
+// Load environment variables from a .env file
+function loadEnvFile(filePath) {
+  const envFileContent = fs.readFileSync(filePath, 'utf8');
+  envFileContent.split('\n').forEach((line) => {
+    const [key, value] = line.split('=');
+    if (key && value) {
+      process.env[key.trim()] = value.trim();
+    }
+  });
 }
+
+const envFilePath = path.join(
+  rootDir,
+  process.argv[2] === 'runProd' ? '.env.production' : '.env.development'
+);
+loadEnvFile(envFilePath);
 
 // Function to get host IP address
 function getHostIP() {
@@ -27,14 +33,29 @@ function getHostIP() {
 }
 
 // Function to get public IP address
-async function getPublicIP() {
-  try {
-    const response = await axios.get('https://api.ipify.org?format=json');
-    return response.data.ip;
-  } catch (error) {
-    console.error('Error fetching public IP:', error);
-    return null;
-  }
+function getPublicIP() {
+  return new Promise((resolve, reject) => {
+    https
+      .get('https://api.ipify.org?format=json', (res) => {
+        let data = '';
+
+        res.on('data', (chunk) => {
+          data += chunk;
+        });
+
+        res.on('end', () => {
+          try {
+            const parsedData = JSON.parse(data);
+            resolve(parsedData.ip);
+          } catch (error) {
+            reject(error);
+          }
+        });
+      })
+      .on('error', (error) => {
+        reject(error);
+      });
+  });
 }
 
 // Function to get unique identifier (serial number or MAC address)
@@ -75,53 +96,63 @@ async function main() {
   // Add the unique identifier to the environment variables
   process.env.BEAGLEBONE_SERIAL_NUMBER = uniqueIdentifier;
 
-  // Environment-specific configurations
-  const dockerDevEnvFile = quotePath(path.join(rootDir, '.env.development'));
-  const dockerProdEnvFile = quotePath(path.join(rootDir, '.env.production'));
-  const dockerDevVolume = quotePath(`${rootDir}:/usr/src/app`);
+  // Docker commands
   const dockerDevImage = `${process.env.DOCKER_REPOSITORY_OWNER}/${process.env.DOCKER_REPOSITORY_NAME}-dev:latest`;
   const dockerProdImage = `${process.env.DOCKER_REPOSITORY_OWNER}/${process.env.DOCKER_REPOSITORY_NAME}:latest`;
 
-  // Docker commands
   const commands = {
     buildDev: `docker build --load -t ${dockerDevImage} -f Dockerfile.dev .`,
-    runDev: `docker run --network host --privileged --restart always --name beaglebone-app-dev --device=/dev/ttyS2 --env-file ${dockerDevEnvFile} -v ${dockerDevVolume} -v /:/host-root:ro -v /home/debian/scripts:/usr/local/bin/scripts -e HOST_IP=${hostIP} -e PUBLIC_IP=${publicIP} -e BEAGLEBONE_SERIAL_NUMBER=${uniqueIdentifier} ${dockerDevImage}`,
+    runDev: `docker run --network host --privileged --name beaglebone-app-dev --device=/dev/ttyS2 --env-file ${envFilePath} -v $(pwd):/usr/src/app -e HOST_IP=${hostIP} -e PUBLIC_IP=${publicIP} -e BEAGLEBONE_SERIAL_NUMBER=${uniqueIdentifier} ${dockerDevImage}`,
     buildProd: `docker build --load -t ${dockerProdImage} -f Dockerfile .`,
-    runProd: `docker run --network host --privileged --restart always -d --name beaglebone-app --device=/dev/ttyS2 --env-file ${dockerProdEnvFile} -v /:/host-root:ro -v /home/debian/scripts:/usr/local/bin/scripts -e HOST_IP=${hostIP} -e PUBLIC_IP=${publicIP} -e BEAGLEBONE_SERIAL_NUMBER=${uniqueIdentifier} ${dockerProdImage}`,
+    runProd: `docker run --network host --privileged --restart always -d --name beaglebone-app --device=/dev/ttyS2 --env-file ${envFilePath} -v /:/host-root:ro -v /home/debian/scripts:/usr/local/bin/scripts -e HOST_IP=${hostIP} -e PUBLIC_IP=${publicIP} -e BEAGLEBONE_SERIAL_NUMBER=${uniqueIdentifier} ${dockerProdImage}`,
   };
 
   // Function to check if a container is running and stop/remove it if necessary
   function handleExistingContainer(containerName) {
-    const isRunning =
-      shell.exec(
-        `docker inspect --format="{{.State.Running}}" ${containerName}`,
-        { silent: true }
-      ).code === 0;
-    if (isRunning) {
+    try {
+      // Check if the container exists
+      const exists = execSync(
+        `docker ps -a --filter "name=${containerName}" --format "{{.Names}}"`
+      )
+        .toString()
+        .trim();
+
+      if (exists === containerName) {
+        console.log(
+          `Container ${containerName} exists. Stopping and removing it...`
+        );
+        execSync(`docker stop ${containerName}`);
+        execSync(`docker rm ${containerName}`);
+      } else {
+        console.log(`Container ${containerName} does not exist.`);
+      }
+    } catch (error) {
       console.log(
-        `Container ${containerName} is already running. Stopping and removing it...`
-      );
-      shell.exec(`docker stop ${containerName}`);
-      shell.exec(`docker rm ${containerName}`);
-    } else {
-      console.log(
-        `Container ${containerName} does not exist or is not running.`
+        `Error handling container ${containerName}: ${error.message}`
       );
     }
   }
+  // Function to execute Docker commands
+  function runCommand(command) {
+    try {
+      execSync(command, { stdio: 'inherit' });
+    } catch (error) {
+      console.error('Command failed:', error.message);
+      process.exit(1);
+    }
+  }
 
-  // Run command
+  // Determine the command to run
   const command = process.argv[2];
   if (commands[command]) {
     const containerName =
       command === 'runProd' ? 'beaglebone-app' : 'beaglebone-app-dev';
     handleExistingContainer(containerName);
-    shell.exec(commands[command]);
+    runCommand(commands[command]);
   } else {
     console.error(`Invalid command: ${command}`);
     process.exit(1);
   }
 }
 
-// Execute the main function
 main();

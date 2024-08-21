@@ -21,4 +21,4 @@ COPY . .
 EXPOSE 3001
 
 # Command to run the application with nodemon
-CMD ["nodemon", "--legacy-watch", "src/index.js"]
+CMD ["nodemon", "--legacy-watch", "--ignore", "/usr/src/app/src/database/data", "src/index.js"]

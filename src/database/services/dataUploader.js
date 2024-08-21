@@ -1,87 +1,84 @@
+import fs from 'fs';
+import path from 'path';
 import axios from 'axios';
-import Sensor from '../models/sensorModel.js';
+import { fileURLToPath } from 'url';
 import logger from '../../common/config/logger.js';
 
-const MAX_CHUNK_SIZE = 1024 * 1024; // 1MB in bytes
-const MAX_RETRIES = 3; // Maximum number of retry attempts
-const RETRY_DELAY = 2000; // Delay between retries in milliseconds
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const dataDir = path.join(__dirname, '../data');
+const uploadedDir = path.join(dataDir, 'uploaded');
+
+if (!fs.existsSync(uploadedDir)) {
+  fs.mkdirSync(uploadedDir);
+}
+
+const MAX_RETRIES = 3;
+const RETRY_DELAY = 2000;
 
 export function uploadDataToServer() {
-  // Fetch all sensor data from the database
-  Sensor.getAll((err, sensorData) => {
-    if (err) {
-      logger.error(`Failed to fetch sensor data: ${err.message}`);
-      return;
-    }
+  const dates = fs.readdirSync(dataDir).filter((dateDir) => {
+    const fullPath = path.join(dataDir, dateDir);
+    return fs.statSync(fullPath).isDirectory(); // Ensure it's a directory
+  });
 
-    if (sensorData.length === 0) {
-      logger.info('No sensor data to upload.');
-      return;
-    }
+  dates.forEach((dateDir) => {
+    const dailyDir = path.join(dataDir, dateDir);
+    const files = fs.readdirSync(dailyDir).filter((file) => {
+      const fullPath = path.join(dailyDir, file);
+      return fs.statSync(fullPath).isFile(); // Ensure it's a file
+    });
 
-    // Convert the sensor data to JSON string for easier size calculation
-    const jsonData = JSON.stringify(sensorData);
-    const totalSize = Buffer.byteLength(jsonData, 'utf8');
+    if (files.length > 0) {
+      const batchData = [];
 
-    // Split data into chunks if it exceeds the max size limit
-    const numChunks = Math.ceil(totalSize / MAX_CHUNK_SIZE);
-    let chunks = [];
+      // Read and parse each file, then push its data into the batch array
+      files.forEach((file) => {
+        const filePath = path.join(dailyDir, file);
+        const fileData = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+        batchData.push(fileData);
+      });
 
-    for (let i = 0; i < numChunks; i++) {
-      const start = i * MAX_CHUNK_SIZE;
-      const end = start + MAX_CHUNK_SIZE;
-      chunks.push(jsonData.slice(start, end));
-    }
-
-    const uploadChunk = (chunkIndex, retryCount = 0) => {
-      if (chunkIndex >= chunks.length) {
-        logger.info('All chunks uploaded successfully.');
-
-        // After all chunks are uploaded, delete the data from the database
-        Sensor.removeAll((err, numRemoved) => {
-          if (err) {
-            logger.error(
-              `Failed to remove sensor data after upload: ${err.message}`
-            );
-          } else {
+      const upload = (retryCount = 0) => {
+        axios
+          .post('https://www.dryersmaster.com/API/devices/upload', {
+            data: batchData,
+          })
+          .then((response) => {
             logger.info(
-              `Removed ${numRemoved} sensor records after successful upload.`
+              `Batch of ${files.length} files uploaded successfully: ${response.status}`
             );
-          }
-        });
-        return;
-      }
 
-      // Upload the current chunk
-      axios
-        .post('https://www.dryersmaster.com/API/devices/upload', {
-          data: chunks[chunkIndex],
-        })
-        .then((response) => {
-          logger.info(
-            `Chunk ${chunkIndex + 1} uploaded successfully: ${response.status}`
-          );
-          uploadChunk(chunkIndex + 1); // Upload the next chunk
-        })
-        .catch((error) => {
-          if (retryCount < MAX_RETRIES) {
-            const delay = RETRY_DELAY * Math.pow(2, retryCount); // Exponential backoff
-            logger.warn(
-              `Retrying upload of chunk ${chunkIndex + 1} (attempt ${
-                retryCount + 1
-              }) after ${delay}ms...`
-            );
-            setTimeout(() => uploadChunk(chunkIndex, retryCount + 1), delay);
-          } else {
-            logger.error(
-              `Failed to upload chunk ${
-                chunkIndex + 1
-              } after ${MAX_RETRIES} attempts: ${error.message}`
-            );
-          }
-        });
-    };
+            // Move all uploaded files to the uploaded directory
+            const uploadedDirPath = path.join(uploadedDir, dateDir);
+            if (!fs.existsSync(uploadedDirPath)) {
+              fs.mkdirSync(uploadedDirPath, { recursive: true });
+            }
 
-    uploadChunk(0); // Start uploading from the first chunk
+            files.forEach((file) => {
+              const filePath = path.join(dailyDir, file);
+              fs.renameSync(filePath, path.join(uploadedDirPath, file));
+            });
+          })
+          .catch((error) => {
+            if (retryCount < MAX_RETRIES) {
+              const delay = RETRY_DELAY * Math.pow(2, retryCount);
+              logger.warn(
+                `Retrying upload of batch (attempt ${
+                  retryCount + 1
+                }) after ${delay}ms...`
+              );
+              setTimeout(() => upload(retryCount + 1), delay);
+            } else {
+              logger.error(
+                `Failed to upload batch after ${MAX_RETRIES} attempts: ${error.message}`
+              );
+            }
+          });
+      };
+
+      upload();
+    }
   });
 }

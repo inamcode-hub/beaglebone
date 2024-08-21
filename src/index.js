@@ -2,10 +2,8 @@ import express from 'express';
 import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
-import { exec } from 'child_process';
 import logger from './common/config/logger.js';
 import { initWebSocketClient } from './websocket/services/websocketClient.js';
-import sensorRoutes from './database/routes/sensorRoutes.js';
 import { dbConnect } from './database/connect/db.js'; // Import the dbConnect function
 
 // Convert import.meta.url to a file path
@@ -28,8 +26,6 @@ process.env.FIRMWARE_VERSION = version;
 app.get('/', (req, res) => {
   res.json({ version });
 });
-
-app.use('/api', sensorRoutes);
 
 app.listen(port, () => {
   logger.info(`App listening on port ${port}`);

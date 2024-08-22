@@ -10,7 +10,7 @@ const __dirname = path.dirname(__filename);
 const dataDir = path.join(__dirname, '../data');
 
 // Buffer to hold data for averaging
-let buffer = [];
+let buffer = {};
 let lastValues = {};
 
 const fieldsToAverage = [
@@ -72,7 +72,7 @@ export async function startCollectingData() {
       logger.info(`Averaged sensor data recorded at ${timestamp}`);
 
       // Reset the buffer for the next minute
-      buffer = [];
+      buffer = {};
     }
   } catch (error) {
     logger.error(`Error in collecting sensor data: ${error.message}`);

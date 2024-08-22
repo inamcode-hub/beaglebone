@@ -31,7 +31,7 @@ export function uploadDataToServer() {
     });
 
     if (files.length > 0) {
-      const batchData = [];
+      let batchData = [];
 
       // Read and parse each file, then push its data into the batch array
       files.forEach((file) => {
@@ -60,6 +60,9 @@ export function uploadDataToServer() {
               const filePath = path.join(dailyDir, file);
               fs.renameSync(filePath, path.join(uploadedDirPath, file));
             });
+
+            // Clear batchData after successful upload
+            batchData = [];
           })
           .catch((error) => {
             if (retryCount < MAX_RETRIES) {

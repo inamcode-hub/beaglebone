@@ -10,8 +10,9 @@ const __dirname = path.dirname(__filename);
 const dataDir = path.join(__dirname, '../data');
 const uploadedDir = path.join(dataDir, 'uploaded');
 
+// Ensure the uploaded directory exists
 if (!fs.existsSync(uploadedDir)) {
-  fs.mkdirSync(uploadedDir);
+  fs.mkdirSync(uploadedDir, { recursive: true });
 }
 
 const MAX_RETRIES = 3;

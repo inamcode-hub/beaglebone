@@ -61,6 +61,7 @@ export async function startCollectingData() {
       const dateStr = timestamp.split('T')[0]; // YYYY-MM-DD
       const dailyDir = path.join(dataDir, dateStr);
 
+      // Ensure the directory exists
       if (!fs.existsSync(dailyDir)) {
         fs.mkdirSync(dailyDir, { recursive: true });
       }

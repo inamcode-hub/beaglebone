@@ -3,6 +3,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { getModbusData } from '../../modbus/controllers/modbusController.js';
 import logger from '../../common/config/logger.js';
+import modbusClient from '../../modbus/utils/modbusClient.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -25,8 +26,7 @@ const fieldsToAverage = [
 
 export async function startCollectingData() {
   try {
-    const modbusData = await getModbusData();
-
+    const modbusData = modbusClient.currentData || {};
     // Extract the necessary data for averaging and last value tracking
     const data = {};
     modbusData.forEach((item) => {

@@ -3,8 +3,9 @@ import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
 import logger from './common/config/logger.js';
+import modbusClient from './modbus/utils/modbusClient.js';
 import { initWebSocketClient } from './websocket/services/websocketClient.js';
-import { dbConnect } from './database/connect/db.js'; // Import the dbConnect function
+import { dbConnect } from './database/connect/db.js';
 
 // Convert import.meta.url to a file path
 const __filename = fileURLToPath(import.meta.url);
@@ -28,7 +29,18 @@ app.get('/', (req, res) => {
 });
 
 app.listen(port, () => {
+  modbusClient.init();
   logger.info(`App listening on port ${port}`);
-  initWebSocketClient();
-  dbConnect();
+
+  modbusClient.on('dataReady', () => {
+    logger.info('Modbus data is ready, initializing WebSocket and database...');
+    initWebSocketClient();
+    dbConnect();
+  });
+});
+
+// Ensure to close the Modbus client when the application is shutting down
+process.on('SIGINT', async () => {
+  await modbusClient.close();
+  process.exit();
 });

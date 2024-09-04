@@ -6,10 +6,12 @@ import { sendMessage, handleError } from '../utils/websocketUtils.js';
 import MESSAGE_TYPES from '../constants/messageTypes.js';
 import { exec } from 'child_process';
 import logger from '../../common/config/logger.js';
+import modbusClient from '../../modbus/utils/modbusClient.js';
 async function handleRequestSensorData(ws) {
   try {
-    const data = await getModbusData();
-    const serialNumber = data.find(
+    const data = modbusClient.currentData;
+    console.log(data);
+    const serialNumber = data?.find(
       (item) => item.tagName === 'systemSerialNumberWriteOnly'
     ).value;
     sendMessage(ws, MESSAGE_TYPES.SENSOR_DATA_RESPONSE, { serialNumber, data });
@@ -21,7 +23,10 @@ async function handleRequestSensorData(ws) {
 async function handleUpdateDeviceSettings(ws, message) {
   const { serialNumber, registerAddress, newValue } = message;
   try {
-    const result = await updateModbusRegister(registerAddress, newValue);
+    const result = await modbusClient.updateModbusRegister(
+      registerAddress,
+      newValue
+    );
     sendMessage(ws, MESSAGE_TYPES.DEVICE_SETTINGS_UPDATE_ACK, {
       serialNumber,
       registerAddress: result.address,
@@ -34,7 +39,7 @@ async function handleUpdateDeviceSettings(ws, message) {
 
 async function rebootDevice(ws) {
   try {
-    const data = await getModbusData();
+    const data = modbusClient.currentData;
     const serialNumber = data.find(
       (item) => item.tagName === 'systemSerialNumberWriteOnly'
     ).value;

@@ -1,9 +1,10 @@
 import WebSocket from 'ws';
 import logger from '../../common/config/logger.js';
-import { readSerialNumber } from '../../modbus/services/modbusClient.js';
+// import { readSerialNumber } from '../../modbus/services/modbusClient.js';
 import { handleMessage } from '../handlers/websocketMessageHandler.js';
 import { sendMessage, handleError } from '../utils/websocketUtils.js';
 import MESSAGE_TYPES from '../constants/messageTypes.js';
+import modbusClient from '../../modbus/utils/modbusClient.js';
 
 const RECONNECT_INTERVAL = 5000;
 const HEARTBEAT_INTERVAL = 10000; // Send ping every 10 seconds
@@ -25,7 +26,9 @@ export async function initWebSocketClient() {
 
 async function initializeSerialNumber() {
   try {
-    const serialNumber = await readSerialNumber();
+    let serialNumber = await modbusClient.currentData.find(
+      (data) => data.tagName === 'systemSerialNumberWriteOnly'
+    ).value;
     logger.info(`Device serial number initialized: ${serialNumber}`);
     return serialNumber;
   } catch (error) {

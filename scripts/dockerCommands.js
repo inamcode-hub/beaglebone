@@ -103,7 +103,7 @@ async function main() {
   const commands = {
     buildDev: `docker build --load -t ${dockerDevImage} -f Dockerfile.dev .`,
     runDev: `docker run --network host --privileged --restart on-failure:5 --name beaglebone-app-dev --device=/dev/ttyS2 --env-file ${envFilePath} -v $(pwd):/usr/src/app -e HOST_IP=${hostIP} -e PUBLIC_IP=${publicIP} -e BEAGLEBONE_SERIAL_NUMBER=${uniqueIdentifier} ${dockerDevImage}`,
-    buildProd: `docker build --no-cache --load -t ${dockerProdImage} -f Dockerfile .`,
+    buildProd: `docker build --load -t ${dockerProdImage} -f Dockerfile .`,
     runProd: `docker run --network host --privileged --restart on-failure:5 --restart always --name beaglebone-app --device=/dev/ttyS2 --env-file ${envFilePath} -v /:/host-root:ro -v /home/debian/scripts:/usr/local/bin/scripts -v /home/debian/docker/beaglebone/logs:/var/log/myapp:rw -e HOST_IP=${hostIP} -e PUBLIC_IP=${publicIP} -e BEAGLEBONE_SERIAL_NUMBER=${uniqueIdentifier} ${dockerProdImage}`,
   };
 

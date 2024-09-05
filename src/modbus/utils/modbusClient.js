@@ -2,10 +2,9 @@ import EventEmitter from 'events';
 import ModbusRTU from 'modbus-serial';
 import logger from '../../common/config/logger.js';
 import registers from '../models/modbusRegisters.js';
-import modbusQueue from '../services/modbusQueue.js';
+import { modbusReadQueue, modbusWriteQueue } from '../services/modbusQueue.js';
 
 class ModbusClient extends EventEmitter {
-  // Extend EventEmitter
   constructor() {
     super(); // Call the EventEmitter constructor
     this.client = new ModbusRTU();
@@ -29,26 +28,29 @@ class ModbusClient extends EventEmitter {
       this.client.setTimeout(20000);
       logger.info('Modbus client connected successfully to /dev/ttyS2');
 
-      // Start reading data every second
-      this.startReading();
+      // Start reading data every 5 seconds
+      this.startReading(5000); // 5-second interval
     } catch (error) {
       logger.error(`Error initializing Modbus client: ${error.message}`);
       throw error;
     }
   }
 
-  // Start reading Modbus data every second
-  startReading(interval = 1000) {
+  // Start reading Modbus data every X seconds
+  startReading(interval = 5000) {
     if (this.interval) {
       logger.warn('ModbusClient is already reading');
       return;
     }
 
     this.interval = setInterval(() => {
-      modbusQueue.addToQueue(() => this.readAndLogData());
+      // Add reading task to the read queue
+      modbusReadQueue.addToQueue(() => this.readAndLogData());
     }, interval);
 
-    logger.info('ModbusClient started reading data');
+    logger.info(
+      `ModbusClient started reading data every ${interval / 1000} seconds`
+    );
   }
 
   // Read Modbus data and log results
@@ -85,6 +87,7 @@ class ModbusClient extends EventEmitter {
       logger.error(`Error during Modbus read cycle: ${error.message}`);
     }
   }
+
   // Read the Modbus registers based on the model
   async readRegisters() {
     const data = [];
@@ -101,6 +104,43 @@ class ModbusClient extends EventEmitter {
       throw error;
     }
     return data;
+  }
+
+  // Write to a Modbus register, using the write queue and detailed logging
+  async writeRegister(registerAddress, value) {
+    return modbusWriteQueue.addToQueue(async () => {
+      try {
+        if (!this.client.isOpen) {
+          logger.warn('Modbus client not open. Reconnecting...');
+          await this.client.connectRTUBuffered('/dev/ttyS2', {
+            baudRate: 19200,
+            parity: 'none',
+            dataBits: 8,
+            stopBits: 1,
+          });
+          this.client.setID(1);
+        }
+
+        logger.info(
+          `Attempting to write value ${value} to register ${registerAddress}`
+        );
+
+        const result = await this.client.writeRegister(registerAddress, value);
+
+        if (result) {
+          logger.info(
+            `Successfully wrote value ${value} to register ${registerAddress}`
+          );
+        } else {
+          logger.warn('Modbus write operation returned undefined result');
+        }
+
+        return result;
+      } catch (error) {
+        logger.error(`Error writing to register: ${error.message}`);
+        throw error;
+      }
+    });
   }
 
   // Subscribe to Modbus data updates

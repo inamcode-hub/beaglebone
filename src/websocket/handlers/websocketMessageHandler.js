@@ -10,7 +10,6 @@ import modbusClient from '../../modbus/utils/modbusClient.js';
 async function handleRequestSensorData(ws) {
   try {
     const data = modbusClient.currentData;
-    console.log(data);
     const serialNumber = data?.find(
       (item) => item.tagName === 'systemSerialNumberWriteOnly'
     ).value;
@@ -23,14 +22,13 @@ async function handleRequestSensorData(ws) {
 async function handleUpdateDeviceSettings(ws, message) {
   const { serialNumber, registerAddress, newValue } = message;
   try {
-    const result = await modbusClient.updateModbusRegister(
-      registerAddress,
-      newValue
-    );
+    console.log('serialNumber', serialNumber);
+    const result = await modbusClient.writeRegister(registerAddress, newValue);
+    console.log('result', result);
     sendMessage(ws, MESSAGE_TYPES.DEVICE_SETTINGS_UPDATE_ACK, {
       serialNumber,
-      registerAddress: result.address,
-      newValue: result.value,
+      registerAddress: registerAddress,
+      newValue: newValue,
     });
   } catch (error) {
     handleError(ws, error);

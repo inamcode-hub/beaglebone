@@ -1,7 +1,7 @@
 import { readRegisters } from '../services/modbusReadService.js';
 import { writeRegister } from '../services/modbusClient.js';
-import modbusQueue from '../services/modbusQueue.js'; // Import the queue
-
+// import modbusQueue from '../services/modbusQueue.js'; // Import the queue
+let modbusClient = null;
 export async function getModbusData() {
   return new Promise((resolve, reject) => {
     modbusQueue.addToQueue(async () => {

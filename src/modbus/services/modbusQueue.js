@@ -1,13 +1,23 @@
 import logger from '../../common/config/logger.js';
 
 class ModbusQueue {
-  constructor(queueName) {
+  constructor(queueName, maxQueueSize = 10) {
+    // Added maxQueueSize parameter
     this.queue = [];
     this.processing = false;
     this.queueName = queueName; // For debugging and logging purposes
+    this.maxQueueSize = maxQueueSize;
   }
 
   async addToQueue(task) {
+    if (this.queue.length >= this.maxQueueSize) {
+      // Check queue size before adding
+      logger.warn(
+        `[${this.queueName}] Queue is full. Max size of ${this.maxQueueSize} reached. Task will not be added.`
+      );
+      return; // Don't add the task if the queue is full
+    }
+
     this.queue.push(task);
     logger.debug(
       `[${this.queueName}] Added task to queue. Queue length: ${this.queue.length}`
@@ -50,7 +60,7 @@ class ModbusQueue {
   }
 }
 
-const modbusReadQueue = new ModbusQueue('Modbus Read Queue');
-const modbusWriteQueue = new ModbusQueue('Modbus Write Queue');
+const modbusReadQueue = new ModbusQueue('Modbus Read Queue', 10); // Set max queue size for reads
+const modbusWriteQueue = new ModbusQueue('Modbus Write Queue', 5); // Set max queue size for writes
 
 export { modbusReadQueue, modbusWriteQueue };

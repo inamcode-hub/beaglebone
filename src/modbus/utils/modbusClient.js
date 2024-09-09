@@ -6,13 +6,13 @@ import { modbusReadQueue, modbusWriteQueue } from '../services/modbusQueue.js';
 
 class ModbusClient extends EventEmitter {
   constructor() {
-    super(); // Call the EventEmitter constructor
+    super();
     this.client = new ModbusRTU();
     this.currentData = {}; // Store the latest Modbus data
-    this.subscribers = []; // Store subscribers' callback functions
-    this.interval = null; // Will hold the setInterval reference
+    this.interval = null; // Will hold the setInterval reference for reading
     this.maxRetries = 3; // Maximum number of retries on communication failure
     this.firstDataReceived = false;
+    this.isReadingPaused = false; // Flag to pause reading during write
   }
 
   // Initialize the Modbus connection and start reading data
@@ -28,8 +28,8 @@ class ModbusClient extends EventEmitter {
       this.client.setTimeout(20000);
       logger.info('Modbus client connected successfully to /dev/ttyS2');
 
-      // Start reading data every 5 seconds
-      this.startReading(5000); // 5-second interval
+      // Start reading data every 1 second
+      this.startReading(1000); // 1-second interval
     } catch (error) {
       logger.error(`Error initializing Modbus client: ${error.message}`);
       throw error;
@@ -37,20 +37,36 @@ class ModbusClient extends EventEmitter {
   }
 
   // Start reading Modbus data every X seconds
-  startReading(interval = 5000) {
+  startReading(interval = 1000) {
     if (this.interval) {
       logger.warn('ModbusClient is already reading');
       return;
     }
 
     this.interval = setInterval(() => {
-      // Add reading task to the read queue
-      modbusReadQueue.addToQueue(() => this.readAndLogData());
+      if (!this.isReadingPaused && modbusWriteQueue.queue.length === 0) {
+        // Prioritize writes over reads
+        modbusReadQueue.addToQueue(() => this.readAndLogData());
+      }
     }, interval);
 
     logger.info(
       `ModbusClient started reading data every ${interval / 1000} seconds`
     );
+  }
+
+  // Stop reading temporarily (used for write operations)
+  stopReading() {
+    logger.info('Stopping reading for write operation...');
+    this.isReadingPaused = true;
+  }
+
+  // Resume reading after a delay (used post-write)
+  resumeReading(delay = 1000) {
+    logger.info(`Resuming reading after ${delay} ms...`);
+    setTimeout(() => {
+      this.isReadingPaused = false;
+    }, delay);
   }
 
   // Read Modbus data and log results
@@ -64,7 +80,6 @@ class ModbusClient extends EventEmitter {
           data = await this.readRegisters();
           this.currentData = data;
           logger.info('Modbus data read successfully');
-          this.notifySubscribers();
 
           if (!this.firstDataReceived) {
             this.firstDataReceived = true;
@@ -88,28 +103,70 @@ class ModbusClient extends EventEmitter {
     }
   }
 
-  // Read the Modbus registers based on the model
+  // Read Modbus registers in blocks
   async readRegisters() {
     const data = [];
+    const blocks = this.createBlocks(registers); // Create blocks of registers to read
+
     try {
-      for (let reg of registers) {
-        const response = await this.client.readHoldingRegisters(reg.address, 1);
-        data.push({
-          tagName: reg.tagName,
-          value: reg.scale(response.data[0]),
-        });
+      for (const block of blocks) {
+        const response = await this.client.readHoldingRegisters(
+          block.start,
+          block.count
+        );
+        for (let i = 0; i < block.count; i++) {
+          const reg = registers.find((r) => r.address === block.start + i);
+          if (reg) {
+            const rawValue = response.data[i];
+            const scaledValue = reg.scale(rawValue);
+            data.push({
+              tagName: reg.tagName,
+              value: scaledValue,
+            });
+            // Update currentData directly
+            this.currentData[reg.tagName] = scaledValue;
+          }
+        }
       }
     } catch (error) {
-      logger.error(`Error reading Modbus registers: ${error.message}`);
+      logger.error(
+        `Error reading Modbus registers in blocks: ${error.message}`
+      );
       throw error;
     }
+
     return data;
   }
 
-  // Write to a Modbus register, using the write queue and detailed logging
+  // Helper function to create blocks of consecutive registers for more efficient reading
+  createBlocks(registers) {
+    const blocks = [];
+    let currentBlock = { start: null, count: 0 };
+
+    registers.forEach((reg, index) => {
+      if (currentBlock.start === null) {
+        currentBlock.start = reg.address;
+        currentBlock.count = 1;
+      } else if (registers[index - 1].address + 1 === reg.address) {
+        currentBlock.count += 1;
+      } else {
+        blocks.push({ ...currentBlock });
+        currentBlock = { start: reg.address, count: 1 };
+      }
+    });
+
+    if (currentBlock.start !== null) blocks.push(currentBlock);
+    return blocks;
+  }
+
+  // Write to a Modbus register, using the write queue and pausing reads during the write
   async writeRegister(registerAddress, value) {
     return modbusWriteQueue.addToQueue(async () => {
       try {
+        this.stopReading();
+        logger.info('Paused reading for 5 seconds...');
+        await this.delay(5000); // Delay 5 seconds before write
+
         if (!this.client.isOpen) {
           logger.warn('Modbus client not open. Reconnecting...');
           await this.client.connectRTUBuffered('/dev/ttyS2', {
@@ -124,7 +181,6 @@ class ModbusClient extends EventEmitter {
         logger.info(
           `Attempting to write value ${value} to register ${registerAddress}`
         );
-
         const result = await this.client.writeRegister(registerAddress, value);
 
         if (result) {
@@ -135,6 +191,7 @@ class ModbusClient extends EventEmitter {
           logger.warn('Modbus write operation returned undefined result');
         }
 
+        this.resumeReading(1000); // Resume reading after 1 second
         return result;
       } catch (error) {
         logger.error(`Error writing to register: ${error.message}`);
@@ -143,25 +200,9 @@ class ModbusClient extends EventEmitter {
     });
   }
 
-  // Subscribe to Modbus data updates
-  subscribe(callback) {
-    if (typeof callback === 'function') {
-      this.subscribers.push(callback);
-      callback(this.currentData); // Immediately send the latest data to the new subscriber
-    } else {
-      logger.warn('ModbusClient: Tried to subscribe with a non-function');
-    }
-  }
-
-  // Notify all subscribers with the latest data
-  notifySubscribers() {
-    this.subscribers.forEach((callback) => {
-      try {
-        callback(this.currentData);
-      } catch (error) {
-        logger.error(`Error notifying subscriber: ${error.message}`);
-      }
-    });
+  // Helper function to add delay
+  delay(ms) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
   // Gracefully close the Modbus client

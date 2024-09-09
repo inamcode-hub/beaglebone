@@ -3,7 +3,7 @@ import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
 import logger from './common/config/logger.js';
-import modbusClient from './modbus/utils/modbusClient.js';
+import modbusClient from './modbus/services/modbusClient.js';
 import { initWebSocketClient } from './websocket/services/websocketClient.js';
 import { dbConnect } from './database/connect/db.js';
 

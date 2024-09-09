@@ -1,12 +1,8 @@
-import {
-  getModbusData,
-  updateModbusRegister,
-} from '../../modbus/controllers/modbusController.js';
 import { sendMessage, handleError } from '../utils/websocketUtils.js';
 import MESSAGE_TYPES from '../constants/messageTypes.js';
 import { exec } from 'child_process';
 import logger from '../../common/config/logger.js';
-import modbusClient from '../../modbus/utils/modbusClient.js';
+import modbusClient from '../../modbus/services/modbusClient.js';
 async function handleRequestSensorData(ws) {
   try {
     const data = modbusClient.currentData;

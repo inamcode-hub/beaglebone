@@ -44,7 +44,7 @@ const registers = [
   { address: 104, tagName: 'newProductNumberWriteOnly', scale: noScale },
   { address: 105, tagName: 'remoteDryerShutdownWriteOnly', scale: noScale },
   { address: 149, tagName: 'systemSerialNumberWriteOnly', scale: noScale },
-  { address: 199, tagName: 'heartbeatRegisterWriteOnly', scale: noScale },
+  // { address: 199, tagName: 'heartbeatRegisterWriteOnly', scale: noScale },
 ];
 
 export default registers;

@@ -1,9 +1,8 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { getModbusData } from '../../modbus/controllers/modbusController.js';
 import logger from '../../common/config/logger.js';
-import modbusClient from '../../modbus/utils/modbusClient.js';
+import modbusClient from '../../modbus/services/modbusClient.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);

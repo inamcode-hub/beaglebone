@@ -2,16 +2,15 @@ import logger from '../../common/config/logger.js';
 
 class ModbusQueue {
   constructor(queueName, maxQueueSize = 10) {
-    // Added maxQueueSize parameter
     this.queue = [];
     this.processing = false;
-    this.queueName = queueName; // For debugging and logging purposes
+    this.queueName = queueName; // For logging purposes
     this.maxQueueSize = maxQueueSize;
   }
 
   async addToQueue(task) {
     if (this.queue.length >= this.maxQueueSize) {
-      // Check queue size before adding
+      // Log a warning if the queue size exceeds the max
       logger.warn(
         `[${this.queueName}] Queue is full. Max size of ${this.maxQueueSize} reached. Task will not be added.`
       );
@@ -19,9 +18,6 @@ class ModbusQueue {
     }
 
     this.queue.push(task);
-    logger.debug(
-      `[${this.queueName}] Added task to queue. Queue length: ${this.queue.length}`
-    );
 
     if (!this.processing) {
       this.processQueue();
@@ -31,21 +27,15 @@ class ModbusQueue {
   async processQueue() {
     if (this.queue.length === 0) {
       this.processing = false;
-      logger.debug(`[${this.queueName}] Queue is empty, stopping processing.`);
       return;
     }
 
     this.processing = true;
     const task = this.queue.shift();
     try {
-      const startTime = Date.now();
-      logger.debug(`[${this.queueName}] Processing task from queue...`);
       await task();
-      const endTime = Date.now();
-      logger.debug(
-        `[${this.queueName}] Task completed in ${endTime - startTime}ms`
-      );
     } catch (error) {
+      // Log an error if the task fails to process
       logger.error(
         `[${this.queueName}] Error processing task: ${error.message}`
       );

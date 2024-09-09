@@ -79,7 +79,6 @@ class ModbusClient extends EventEmitter {
         try {
           data = await this.readRegisters();
           this.currentData = data;
-          logger.info('Modbus data read successfully');
 
           if (!this.firstDataReceived) {
             this.firstDataReceived = true;

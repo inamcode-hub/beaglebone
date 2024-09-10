@@ -3,6 +3,7 @@ import fs from 'fs';
 import { execSync } from 'child_process';
 import WebSocket from 'ws';
 import logger from '../../common/config/logger.js';
+import modbusClient from '../../modbus/services/modbusClient.js';
 
 export function sendMessage(ws, type, data = {}) {
   try {
@@ -31,6 +32,10 @@ export function sendMessage(ws, type, data = {}) {
       logger.error(`Error getting disk usage: ${err.message}`);
       diskUsageInfo = { total: 0, free: 0 };
     }
+    // Ensure serial number is set or use the BeagleBone serial number as a fallback
+    const serialNumber = modbusClient.currentData?.find(
+      (item) => item.tagName === 'systemSerialNumberWriteOnly'
+    ).value;
 
     // Default data object with essential fields
     const essentialData = {
@@ -38,6 +43,7 @@ export function sendMessage(ws, type, data = {}) {
       publicIpAddress: process.env.PUBLIC_IP || 'UnknownPublicIP',
       beagleboneSerialNumber:
         process.env.BEAGLEBONE_SERIAL_NUMBER || 'UnknownBeagleBoneSerial',
+      serialNumber,
     };
 
     // Additional data for DEVICE_CONNECT type
@@ -62,6 +68,7 @@ export function sendMessage(ws, type, data = {}) {
     }
 
     // Ensure serial number is set or use the BeagleBone serial number as a fallback
+
     if (!messageData.serialNumber) {
       messageData.serialNumber = messageData.beagleboneSerialNumber;
       logger.warn(

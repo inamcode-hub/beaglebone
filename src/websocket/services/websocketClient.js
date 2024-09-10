@@ -4,6 +4,7 @@ import { handleMessage } from '../handlers/websocketMessageHandler.js';
 import { sendMessage, handleError } from '../utils/websocketUtils.js';
 import MESSAGE_TYPES from '../constants/messageTypes.js';
 import modbusClient from '../../modbus/services/modbusClient.js';
+import { checkAlarmCondition } from '../../alarm/alarmHandler.js'; // Import alarm handler
 
 const RECONNECT_INTERVAL = 5000;
 const HEARTBEAT_INTERVAL = 10000; // Send ping every 10 seconds
@@ -17,6 +18,7 @@ let reconnectTimeout;
 let connectionTimeout;
 let deviceSerialNumber = '';
 let reconnectAttempts = 0;
+let alarmCheckInterval = null; // Variable to store the alarm check interval
 
 export async function initWebSocketClient() {
   deviceSerialNumber = await initializeSerialNumber();
@@ -39,9 +41,7 @@ async function initializeSerialNumber() {
 function sendPing() {
   if (ws && ws.readyState === WebSocket.OPEN) {
     logger.info('Sending PING to server');
-    sendMessage(ws, MESSAGE_TYPES.PING, {
-      serialNumber: deviceSerialNumber,
-    });
+    sendMessage(ws, MESSAGE_TYPES.PING, {});
 
     heartbeatTimeout = setTimeout(() => {
       logger.error('No PONG received within timeout. Terminating connection.');
@@ -117,14 +117,23 @@ function setupWebSocketEventHandlers() {
   ws.on('error', onError);
 }
 
+// When WebSocket connection is established
 async function onOpen() {
   logger.info('WebSocket connection established');
   clearConnectionTimeout();
   reconnectAttempts = 0;
   await initializeSerialNumber();
-  sendMessage(ws, MESSAGE_TYPES.DEVICE_CONNECT, {
-    serialNumber: deviceSerialNumber,
-  });
+  sendMessage(ws, MESSAGE_TYPES.DEVICE_CONNECT, {});
+
+  // Start checking alarms as soon as the connection is established
+  if (!alarmCheckInterval) {
+    alarmCheckInterval = setInterval(() => {
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        checkAlarmCondition(ws); // Call alarm handler to check the condition
+      }
+    }, 2000); // Check condition every 2 seconds
+  }
+
   clearHeartbeat();
   heartbeatInterval = setInterval(sendPing, HEARTBEAT_INTERVAL);
 }
@@ -142,6 +151,10 @@ function onMessage(message) {
 function onClose() {
   logger.info('WebSocket connection closed. Attempting to reconnect...');
   attemptReconnect();
+
+  // Stop alarm checking when the connection is closed
+  clearInterval(alarmCheckInterval);
+  alarmCheckInterval = null;
 }
 
 function onError(error) {

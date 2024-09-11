@@ -9,7 +9,7 @@ async function handleRequestSensorData(ws) {
     const serialNumber = data?.find(
       (item) => item.tagName === 'systemSerialNumberWriteOnly'
     ).value;
-    sendMessage(ws, MESSAGE_TYPES.SENSOR_DATA_RESPONSE, { data });
+    sendMessage(ws, MESSAGE_TYPES.SENSOR_DATA_RESPONSE, { serialNumber, data });
   } catch (error) {
     handleError(ws, error);
   }
@@ -22,6 +22,7 @@ async function handleUpdateDeviceSettings(ws, message) {
     const result = await modbusClient.writeRegister(registerAddress, newValue);
     console.log('result', result);
     sendMessage(ws, MESSAGE_TYPES.DEVICE_SETTINGS_UPDATE_ACK, {
+      serialNumber,
       registerAddress: registerAddress,
       newValue: newValue,
     });
@@ -38,6 +39,7 @@ async function rebootDevice(ws) {
     ).value;
     // Sending successful reboot message
     sendMessage(ws, MESSAGE_TYPES.REBOOT_DEVICE_ACK, {
+      serialNumber,
       success: true,
       message: 'Device reboot initiated successfully.',
     });
@@ -49,6 +51,7 @@ async function rebootDevice(ws) {
         if (error) {
           logger.error(`Reboot error: ${error.message}`);
           sendMessage(ws, MESSAGE_TYPES.REBOOT_DEVICE_ACK, {
+            serialNumber,
             success: false,
             error: 'Failed to reboot the device.',
             errorMessage: error.message,
@@ -58,6 +61,7 @@ async function rebootDevice(ws) {
         if (stderr) {
           logger.error(`Reboot stderr: ${stderr}`);
           sendMessage(ws, MESSAGE_TYPES.REBOOT_DEVICE_ACK, {
+            serialNumber,
             success: false,
             error: 'Failed to reboot the device.',
             errorMessage: stderr,
@@ -68,6 +72,7 @@ async function rebootDevice(ws) {
     );
   } catch (error) {
     sendMessage(ws, MESSAGE_TYPES.REBOOT_DEVICE_ACK, {
+      serialNumber,
       success: false,
       error: 'Failed to reboot the device.',
       errorMessage: error.message,

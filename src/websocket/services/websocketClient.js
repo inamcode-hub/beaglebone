@@ -4,7 +4,10 @@ import { handleMessage } from '../handlers/websocketMessageHandler.js';
 import { sendMessage, handleError } from '../utils/websocketUtils.js';
 import MESSAGE_TYPES from '../constants/messageTypes.js';
 import modbusClient from '../../modbus/services/modbusClient.js';
-import { checkAlarmCondition } from '../../alarm/alarmHandler.js'; // Import alarm handler
+import {
+  checkAlarmCondition,
+  handleAlarmAck,
+} from '../../alarm/alarmHandler.js'; // Import alarm handler
 
 const RECONNECT_INTERVAL = 5000;
 const HEARTBEAT_INTERVAL = 10000; // Send ping every 10 seconds
@@ -128,9 +131,7 @@ async function onOpen() {
   // Start checking alarms as soon as the connection is established
   if (!alarmCheckInterval) {
     alarmCheckInterval = setInterval(() => {
-      if (ws && ws.readyState === WebSocket.OPEN) {
-        checkAlarmCondition(ws); // Call alarm handler to check the condition
-      }
+      // checkAlarmCondition(ws); // Pass the WebSocket connection
     }, 2000); // Check condition every 2 seconds
   }
 
@@ -140,7 +141,11 @@ async function onOpen() {
 
 function onMessage(message) {
   const parsedMessage = JSON.parse(message);
-  if (parsedMessage.type === MESSAGE_TYPES.PONG) {
+
+  // Recognize ALARM_ACK from the server and handle it accordingly
+  if (parsedMessage.type === MESSAGE_TYPES.ALARM_ACK) {
+    handleAlarmAck(parsedMessage); // Handle alarm acknowledgment
+  } else if (parsedMessage.type === MESSAGE_TYPES.PONG) {
     logger.info('Received PONG from server');
     clearTimeout(heartbeatTimeout);
   } else {

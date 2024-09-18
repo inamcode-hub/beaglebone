@@ -5,9 +5,10 @@ import { sendMessage, handleError } from '../utils/websocketUtils.js';
 import MESSAGE_TYPES from '../constants/messageTypes.js';
 import modbusClient from '../../modbus/services/modbusClient.js';
 import {
-  checkAlarmCondition,
-  handleAlarmAck,
-} from '../../alarm/alarmHandler.js'; // Import alarm handler
+  startAlarmPolling,
+  stopAlarmPolling,
+} from '../../alarm/alarmPolling.js';
+// import { handleAlarmAck } from '../../alarm/messageHandler.js';
 
 const RECONNECT_INTERVAL = 5000;
 const HEARTBEAT_INTERVAL = 10000; // Send ping every 10 seconds
@@ -19,9 +20,8 @@ let heartbeatTimeout;
 let heartbeatInterval;
 let reconnectTimeout;
 let connectionTimeout;
-let deviceSerialNumber = '';
 let reconnectAttempts = 0;
-let alarmCheckInterval = null; // Variable to store the alarm check interval
+let deviceSerialNumber;
 
 export async function initWebSocketClient() {
   deviceSerialNumber = await initializeSerialNumber();
@@ -128,15 +128,11 @@ async function onOpen() {
   await initializeSerialNumber();
   sendMessage(ws, MESSAGE_TYPES.DEVICE_CONNECT, {});
 
-  // Start checking alarms as soon as the connection is established
-  if (!alarmCheckInterval) {
-    alarmCheckInterval = setInterval(() => {
-      // checkAlarmCondition(ws); // Pass the WebSocket connection
-    }, 2000); // Check condition every 2 seconds
-  }
-
   clearHeartbeat();
   heartbeatInterval = setInterval(sendPing, HEARTBEAT_INTERVAL);
+
+  // Start alarm polling
+  startAlarmPolling(ws);
 }
 
 function onMessage(message) {
@@ -144,7 +140,7 @@ function onMessage(message) {
 
   // Recognize ALARM_ACK from the server and handle it accordingly
   if (parsedMessage.type === MESSAGE_TYPES.ALARM_ACK) {
-    handleAlarmAck(parsedMessage); // Handle alarm acknowledgment
+    // handleAlarmAck(parsedMessage); // Handle alarm acknowledgment
   } else if (parsedMessage.type === MESSAGE_TYPES.PONG) {
     logger.info('Received PONG from server');
     clearTimeout(heartbeatTimeout);
@@ -155,11 +151,9 @@ function onMessage(message) {
 
 function onClose() {
   logger.info('WebSocket connection closed. Attempting to reconnect...');
-  attemptReconnect();
 
-  // Stop alarm checking when the connection is closed
-  clearInterval(alarmCheckInterval);
-  alarmCheckInterval = null;
+  attemptReconnect();
+  stopAlarmPolling();
 }
 
 function onError(error) {
@@ -179,4 +173,8 @@ function handleErrorDuringConnection(error) {
   logger.error(`WebSocket connection error: ${error.message}`);
   handleError(ws, error);
   attemptReconnect();
+}
+
+export function getWsFreshConnection() {
+  return ws;
 }

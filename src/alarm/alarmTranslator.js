@@ -3,7 +3,10 @@ import modbusClient from '../modbus/services/modbusClient.js';
 // Function to interpret a single bit (0 or 1) as an alarm state and return only active alarms
 const interpretAlarmState = (bitValue, alarmName, stage) => {
   if (bitValue === 1) {
-    return `${alarmName} is at stage: ${stage}`;
+    return {
+      alarmName: alarmName,
+      stage: stage, // Only return alarmName and stage
+    };
   }
   return null;
 };
@@ -165,22 +168,22 @@ const translateAllAlarmsFromData = (modbusData) => {
     (r) => r.tagName === 'dischargeAlarmStates'
   );
 
-  console.log('Received Alarm Data:');
-  if (moistureAlarmData) {
-    console.log(
-      `Tag: ${moistureAlarmData.tagName}, Value: ${moistureAlarmData.value}`
-    );
-  }
-  if (temperatureAlarmData) {
-    console.log(
-      `Tag: ${temperatureAlarmData.tagName}, Value: ${temperatureAlarmData.value}`
-    );
-  }
-  if (dischargeAlarmData) {
-    console.log(
-      `Tag: ${dischargeAlarmData.tagName}, Value: ${dischargeAlarmData.value}`
-    );
-  }
+  // console.log('Received Alarm Data:');
+  // if (moistureAlarmData) {
+  //   console.log(
+  //     `Tag: ${moistureAlarmData.tagName}, Value: ${moistureAlarmData.value}`
+  //   );
+  // }
+  // if (temperatureAlarmData) {
+  //   console.log(
+  //     `Tag: ${temperatureAlarmData.tagName}, Value: ${temperatureAlarmData.value}`
+  //   );
+  // }
+  // if (dischargeAlarmData) {
+  //   console.log(
+  //     `Tag: ${dischargeAlarmData.tagName}, Value: ${dischargeAlarmData.value}`
+  //   );
+  // }
 
   if (moistureAlarmData) {
     const moistureAlarms = translateMoistureAndTemperatureAlarm(
@@ -221,15 +224,15 @@ export const processModbusAlarms = () => {
 
   const activeAlarms = translateAllAlarmsFromData(modbusData);
 
-  if (Object.keys(activeAlarms).length > 0) {
-    console.log('================== ALARM STATES ==================');
-    console.log('Active alarms:', activeAlarms);
-    console.log('==================================================');
-  } else {
-    console.log('================== ALARM STATES ==================');
-    console.log('No active alarms.');
-    console.log('==================================================');
-  }
+  // if (Object.keys(activeAlarms).length > 0) {
+  //   console.log('================== ALARM STATES ==================');
+  //   console.log('Active alarms:', activeAlarms);
+  //   console.log('==================================================');
+  // } else {
+  //   console.log('================== ALARM STATES ==================');
+  //   console.log('No active alarms.');
+  //   console.log('==================================================');
+  // }
 
   return activeAlarms;
 };

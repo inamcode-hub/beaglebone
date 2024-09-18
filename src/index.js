@@ -6,7 +6,6 @@ import logger from './common/config/logger.js';
 import modbusClient from './modbus/services/modbusClient.js';
 import { initWebSocketClient } from './websocket/services/websocketClient.js';
 import { dbConnect } from './database/connect/db.js';
-import { processModbusAlarms } from './alarm/helpers.js';
 
 // Convert import.meta.url to a file path
 const __filename = fileURLToPath(import.meta.url);
@@ -37,9 +36,6 @@ app.listen(port, () => {
     logger.info('Modbus data is ready, initializing WebSocket and database...');
     initWebSocketClient();
     dbConnect();
-    setInterval(() => {
-      processModbusAlarms();
-    }, 3000);
   });
 });
 

@@ -127,7 +127,7 @@ const translateDischargeAndBurnerAlarm = (alarmValue) => {
   const cloDischarge = interpretAlarmState(
     (alarmValue >> 0) & 1,
     'dischargeRateAlarm',
-    'WLO|CLO'
+    'CLO'
   );
   // THIS ONE NOT WORKING
   const whiDischarge = interpretAlarmState(

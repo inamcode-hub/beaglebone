@@ -18,9 +18,9 @@ async function handleRequestSensorData(ws) {
 async function handleUpdateDeviceSettings(ws, message) {
   const { serialNumber, registerAddress, newValue } = message;
   try {
-    console.log('serialNumber', serialNumber);
+    logger.info('serialNumber', serialNumber);
     const result = await modbusClient.writeRegister(registerAddress, newValue);
-    console.log('result', result);
+    logger.info('result', result);
     sendMessage(ws, MESSAGE_TYPES.DEVICE_SETTINGS_UPDATE_ACK, {
       serialNumber,
       registerAddress: registerAddress,

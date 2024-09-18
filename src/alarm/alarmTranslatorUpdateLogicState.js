@@ -1,6 +1,6 @@
+import logger from '../common/config/logger.js';
 import { alarmLogicState } from './alarmLogicState.js'; // Global state
 import { processModbusAlarms } from './alarmTranslator.js'; // Function that gets active alarms
-
 // Function to handle reading alarms, updating the global state, and adding timestamps
 const readAlarmLogicState = () => {
   const activeAlarms = processModbusAlarms(); // Get the current active alarms
@@ -28,7 +28,7 @@ const readAlarmLogicState = () => {
           globalState.stage = alarmState.stage; // Update the stage
 
           // Log the update
-          console.log(
+          logger.info(
             `Updated ${alarmName} - Stage: ${alarmState.stage}, Last Active: ${globalState.lastActive}`
           );
         }
@@ -41,7 +41,7 @@ const readAlarmLogicState = () => {
         globalState.active = false; // Set active to false
 
         // Log the deactivation
-        console.log(
+        logger.info(
           `Deactivated ${alarmName} - Last Deactivated: ${globalState.lastDeactivated}`
         );
       }

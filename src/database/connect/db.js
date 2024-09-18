@@ -1,13 +1,14 @@
 import { startCollectingData } from '../services/dataCollector.js';
 import { uploadDataToServer } from '../services/dataUploader.js';
 import { rotateOldData } from '../services/dataRotation.js';
+import logger from '../../common/config/logger.js';
 
 let dataCollectorInterval;
 let dataUploaderInterval;
 let dataRotationInterval;
 
 export const dbConnect = () => {
-  console.log('Starting data collection tasks...');
+  logger.info('Starting data collection tasks...');
 
   // Collect data every second
   dataCollectorInterval = setInterval(() => {
@@ -22,9 +23,9 @@ export const dbConnect = () => {
   dataUploaderInterval = setInterval(() => {
     try {
       uploadDataToServer();
-      console.log('Uploading data...');
+      logger.info('Uploading data...');
     } catch (error) {
-      console.error('Error in data upload:', error);
+      logger.error('Error in data upload:', error);
     }
   }, 60 * 60 * 1000); // Every 1 hour
 
@@ -32,19 +33,19 @@ export const dbConnect = () => {
   dataRotationInterval = setInterval(() => {
     try {
       rotateOldData();
-      console.log('Rotating old data...');
+      logger.info('Rotating old data...');
     } catch (error) {
-      console.error('Error in data rotation:', error);
+      logger.error('Error in data rotation:', error);
     }
   }, 24 * 60 * 60 * 1000); // Every 24 hours
 };
 
 // Graceful shutdown and clearing intervals
 process.on('SIGINT', () => {
-  console.log('Gracefully shutting down...');
+  logger.info('Gracefully shutting down...');
   clearInterval(dataCollectorInterval);
   clearInterval(dataUploaderInterval);
   clearInterval(dataRotationInterval);
-  console.log('Intervals cleared. Exiting process.');
+  logger.info('Intervals cleared. Exiting process.');
   process.exit();
 });

@@ -1,3 +1,4 @@
+import logger from '../common/config/logger.js';
 import MESSAGE_TYPES from '../websocket/constants/messageTypes.js';
 import { getWsFreshConnection } from '../websocket/services/websocketClient.js';
 import { sendMessage } from '../websocket/utils/websocketUtils.js';
@@ -7,10 +8,6 @@ import { alarmLogicState } from './alarmLogicState.js'; // Global state
 // Function to send alarm message to the server (console.log for now)
 const sendAlarmMessageToServer = (ws, alarmType, stage) => {
   const timestamp = alarmLogicState[alarmType].lastActive;
-
-  // console.log(
-  //   `Alarm message sent to server: ${alarmType}, ${stage}, ${timestamp}`
-  // );
   // Send the alarm message to the server
   sendMessage(ws, MESSAGE_TYPES.ALARM_TRIGGER, {
     alarmType,
@@ -60,15 +57,13 @@ const alarmAlertMessageSend = (ws) => {
           globalState.lastSentToServer = now.toISOString();
           globalState.sentRetries += 1; // Increment the retry count
 
-          // Log the retry
-          // console.log(`Retry ${globalState.sentRetries} for ${alarmType}`);
+          logger.info(`Retry ${globalState.sentRetries} for ${alarmType}`);
         } else {
           // If 3 retries have been reached, set autoAck to true
           globalState.autoAck = true;
           globalState.sentRetries = 0; // Reset retries
 
-          // Log auto acknowledgment
-          // console.log(`${alarmType} auto-acknowledged after 3 retries.`);
+          logger.info(`${alarmType} auto-acknowledged after 3 retries.`);
         }
       }
     }

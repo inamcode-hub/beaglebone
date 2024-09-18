@@ -1,18 +1,30 @@
+import MESSAGE_TYPES from '../websocket/constants/messageTypes.js';
+import { getWsFreshConnection } from '../websocket/services/websocketClient.js';
+import { sendMessage } from '../websocket/utils/websocketUtils.js';
+
 import { alarmLogicState } from './alarmLogicState.js'; // Global state
 
 // Function to send alarm message to the server (console.log for now)
-const sendAlarmMessageToServer = (alarmName, stage) => {
-  console.log(
-    `Sending alarm ${alarmName} with stage ${stage} to the server...`
-  );
+const sendAlarmMessageToServer = (ws, alarmType, stage) => {
+  const timestamp = alarmLogicState[alarmType].lastActive;
+
+  // console.log(
+  //   `Alarm message sent to server: ${alarmType}, ${stage}, ${timestamp}`
+  // );
+  // Send the alarm message to the server
+  sendMessage(ws, MESSAGE_TYPES.ALARM_TRIGGER, {
+    alarmType,
+    stage,
+    timestamp,
+  });
 };
 
 // Function to check alarms and send messages
-const alarmAlertMessageSend = () => {
+const alarmAlertMessageSend = (ws) => {
   const now = new Date(); // Current timestamp
 
-  Object.keys(alarmLogicState).forEach((alarmName) => {
-    const globalState = alarmLogicState[alarmName];
+  Object.keys(alarmLogicState).forEach((alarmType) => {
+    const globalState = alarmLogicState[alarmType];
 
     // Add a flag to track if the alarm was previously inactive
     if (globalState.wasPreviouslyInactive === undefined) {
@@ -26,11 +38,6 @@ const alarmAlertMessageSend = () => {
       globalState.autoAck = false;
       globalState.sentRetries = 0;
       globalState.wasPreviouslyInactive = false; // Mark that the alarm is now active
-
-      // Log the reactivation
-      console.log(
-        `Alarm ${alarmName} reactivated, resetting acknowledgments and retries.`
-      );
     }
 
     // If the alarm is not active, mark it as previously inactive
@@ -47,21 +54,21 @@ const alarmAlertMessageSend = () => {
       if (globalState.sentRetries === 0 || timeSinceLastSent > 5000) {
         if (globalState.sentRetries < 3) {
           // Send the alarm message to the server
-          sendAlarmMessageToServer(alarmName, globalState.stage);
+          sendAlarmMessageToServer(ws, alarmType, globalState.stage);
 
           // Update the state to reflect the message was sent
           globalState.lastSentToServer = now.toISOString();
           globalState.sentRetries += 1; // Increment the retry count
 
           // Log the retry
-          console.log(`Retry ${globalState.sentRetries} for ${alarmName}`);
+          // console.log(`Retry ${globalState.sentRetries} for ${alarmType}`);
         } else {
           // If 3 retries have been reached, set autoAck to true
           globalState.autoAck = true;
           globalState.sentRetries = 0; // Reset retries
 
           // Log auto acknowledgment
-          console.log(`${alarmName} auto-acknowledged after 3 retries.`);
+          // console.log(`${alarmType} auto-acknowledged after 3 retries.`);
         }
       }
     }

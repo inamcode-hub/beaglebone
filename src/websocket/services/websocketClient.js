@@ -8,6 +8,7 @@ import {
   startAlarmPolling,
   stopAlarmPolling,
 } from '../../alarm/alarmPolling.js';
+import { updateAlarmAckState } from '../../alarm/alarmAckMessageUpdateState.js';
 // import { handleAlarmAck } from '../../alarm/messageHandler.js';
 
 const RECONNECT_INTERVAL = 5000;
@@ -140,7 +141,7 @@ function onMessage(message) {
 
   // Recognize ALARM_ACK from the server and handle it accordingly
   if (parsedMessage.type === MESSAGE_TYPES.ALARM_ACK) {
-    // handleAlarmAck(parsedMessage); // Handle alarm acknowledgment
+    updateAlarmAckState(parsedMessage);
   } else if (parsedMessage.type === MESSAGE_TYPES.PONG) {
     logger.info('Received PONG from server');
     clearTimeout(heartbeatTimeout);

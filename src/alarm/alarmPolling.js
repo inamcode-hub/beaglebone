@@ -17,7 +17,7 @@ const startAlarmPolling = (ws) => {
   // Polling to send alarm alerts (using the global interval for sending alerts)
   setInterval(() => {
     // Trigger the function to send alarms to the server
-    alarmAlertMessageSend();
+    alarmAlertMessageSend(ws);
   }, intervals.sendAlarmAlerts); // Using the global interval for sending alarm alerts
 
   console.log('===============================');

@@ -105,12 +105,12 @@ const translateDischargeAndBurnerAlarm = (alarmValue) => {
   const wloBurner = interpretAlarmState(
     (alarmValue >> 6) & 1,
     'burnerTemperatureAlarm',
-    'WLO'
+    'WHI'
   );
   const dryerOff = interpretAlarmState(
     (alarmValue >> 5) & 1,
     'burnerTemperatureAlarm',
-    'DryerOff'
+    'WLO'
   );
 
   [chiBurner, cloBurner, wloBurner, dryerOff].forEach((state) => {
@@ -121,22 +121,24 @@ const translateDischargeAndBurnerAlarm = (alarmValue) => {
   const chiDischarge = interpretAlarmState(
     (alarmValue >> 4) & 1,
     'dischargeRateAlarm',
-    'CHI'
+    'WHI'
   );
+  // WARNING: CLO and WLO are swapped in the mapping
   const cloDischarge = interpretAlarmState(
-    (alarmValue >> 3) & 1,
+    (alarmValue >> 0) & 1,
+    'dischargeRateAlarm',
+    'WLO|CLO'
+  );
+  // THIS ONE NOT WORKING
+  const whiDischarge = interpretAlarmState(
+    (alarmValue >> 5) & 1,
     'dischargeRateAlarm',
     'CLO'
-  );
-  const whiDischarge = interpretAlarmState(
-    (alarmValue >> 2) & 1,
-    'dischargeRateAlarm',
-    'WHI'
   );
   const wloDischarge = interpretAlarmState(
     (alarmValue >> 1) & 1,
     'dischargeRateAlarm',
-    'WLO'
+    'CHI'
   );
 
   [chiDischarge, cloDischarge, whiDischarge, wloDischarge].forEach((state) => {

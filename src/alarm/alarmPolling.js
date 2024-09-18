@@ -23,6 +23,8 @@ const startAlarmPolling = (ws) => {
 // Stop polling when the WebSocket disconnects
 const stopAlarmPolling = () => {
   logger.info('stop alarm polling...');
+  clearInterval(updateAlarmLogicInterval);
+  clearInterval(sendAlarmAlertsInterval);
 };
 
 export { startAlarmPolling, stopAlarmPolling };

@@ -1,6 +1,6 @@
 const intervals = {
   translateAndUpdateGlobalState: 3000,
-  sendAlarmAlerts: 1000,
+  sendAlarmAlerts: 2000,
 };
 const stage = {
   1: 'lwl',
@@ -14,7 +14,7 @@ const alarmLogicState = {
     lastActive: '2021-01-01T00:00:00.000Z', // When the alarm was last activated
     lastDeactivated: '2021-01-01T00:00:00.000Z', // When the alarm was last deactivated
     lastChecked: '2021-01-01T00:00:00.000Z', // Last time this alarm state was checked
-    debounceTime: 5000, // Debounce time in milliseconds
+    debounceTime: 15000, // Debounce time in milliseconds
     stage: '', // Current stage of the alarm
     lastSentToServer: '2021-01-01T00:00:00.000Z', // When the last alarm was sent to the server
     sentRetries: 0,
@@ -26,7 +26,7 @@ const alarmLogicState = {
     lastActive: '2021-01-01T00:00:00.000Z', // When the alarm was last activated
     lastDeactivated: '2021-01-01T00:00:00.000Z', // When the alarm was last deactivated
     lastChecked: '2021-01-01T00:00:00.000Z', // Last time this alarm state was checked
-    debounceTime: 5000, // Debounce time in milliseconds
+    debounceTime: 15000, // Debounce time in milliseconds
     stage: '', // Current stage of the alarm
     lastSentToServer: '2021-01-01T00:00:00.000Z', // When the last alarm was sent to the server
     sentRetries: 0,
@@ -38,7 +38,7 @@ const alarmLogicState = {
     lastActive: '2021-01-01T00:00:00.000Z', // When the alarm was last activated
     lastDeactivated: '2021-01-01T00:00:00.000Z', // When the alarm was last deactivated
     lastChecked: '2021-01-01T00:00:00.000Z', // Last time this alarm state was checked
-    debounceTime: 5000, // Debounce time in milliseconds
+    debounceTime: 15000, // Debounce time in milliseconds
     stage: '', // Current stage of the alarm
     lastSentToServer: '2021-01-01T00:00:00.000Z', // When the last alarm was sent to the server
     sentRetries: 0,
@@ -50,7 +50,7 @@ const alarmLogicState = {
     lastActive: '2021-01-01T00:00:00.000Z', // When the alarm was last activated
     lastDeactivated: '2021-01-01T00:00:00.000Z', // When the alarm was last deactivated
     lastChecked: '2021-01-01T00:00:00.000Z', // Last time this alarm state was checked
-    debounceTime: 5000, // Debounce time in milliseconds
+    debounceTime: 15000, // Debounce time in milliseconds
     stage: '', // Current stage of the alarm
     lastSentToServer: '2021-01-01T00:00:00.000Z', // When the last alarm was sent to the server
     sentRetries: 0,
@@ -62,7 +62,7 @@ const alarmLogicState = {
     lastActive: '2021-01-01T00:00:00.000Z', // When the alarm was last activated
     lastDeactivated: '2021-01-01T00:00:00.000Z', // When the alarm was last deactivated
     lastChecked: '2021-01-01T00:00:00.000Z', // Last time this alarm state was checked
-    debounceTime: 5000, // Debounce time in milliseconds
+    debounceTime: 15000, // Debounce time in milliseconds
     stage: '', // Current stage of the alarm
     lastSentToServer: '2021-01-01T00:00:00.000Z', // When the last alarm was sent to the server
     sentRetries: 0,
@@ -74,7 +74,7 @@ const alarmLogicState = {
     lastActive: '2021-01-01T00:00:00.000Z', // When the alarm was last activated
     lastDeactivated: '2021-01-01T00:00:00.000Z', // When the alarm was last deactivated
     lastChecked: '2021-01-01T00:00:00.000Z', // Last time this alarm state was checked
-    debounceTime: 5000, // Debounce time in milliseconds
+    debounceTime: 15000, // Debounce time in milliseconds
     stage: '', // Current stage of the alarm
     lastSentToServer: '2021-01-01T00:00:00.000Z', // When the last alarm was sent to the server
     sentRetries: 0,

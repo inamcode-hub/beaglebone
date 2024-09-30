@@ -7,10 +7,10 @@
   "scripts": {
     "dev": "dotenv -e .env.development nodemon --legacy-watch src/index.js",
     "start": "dotenv -e .env.production node src/index.js",
-    "docker:build:dev": "node scripts/dockerCommands.js buildDev",
+    "docker:build:dev": "VERSION=$(cat VERSION) && node scripts/dockerCommands.js buildDev --version=$VERSION",
     "docker:run:dev": "node scripts/dockerCommands.js runDev",
     "docker:dev": "npm run docker:build:dev && npm run docker:run:dev",
-    "docker:build:prod": "node scripts/dockerCommands.js buildProd",
+    "docker:build:prod": "VERSION=$(cat VERSION) && node scripts/dockerCommands.js buildProd --version=$VERSION",
     "docker:run:prod": "node scripts/dockerCommands.js runProd",
     "docker:prod": "npm run docker:build:prod && npm run docker:run:prod",
     "deploy:watch": "node scripts/continuousDeploy.js"

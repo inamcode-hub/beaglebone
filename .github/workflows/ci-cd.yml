@@ -10,45 +10,44 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # Step 1: Checkout code
       - name: Checkout code
         uses: actions/checkout@v2
 
+      # Step 2: Set up Docker Buildx
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
 
+      # Step 3: Log in to Docker Hub
       - name: Log in to Docker Hub
         run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
 
+      # Step 4: Set up QEMU for cross-platform builds
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1
 
+      # Step 5: Install Node.js
       - name: Install Node.js
         uses: actions/setup-node@v2
         with:
-          node-version: '14' # Specify the Node.js version you are using
+          node-version: '14'
 
+      # Step 6: Install dependencies
       - name: Install dependencies
         run: npm install
 
-      - name: Extract version
-        id: get_version
-        run: echo "::set-output name=version::$(jq -r .version package.json)"
+      # Step 7: Extract version from VERSION file and store in GitHub environment
+      - name: Extract version from VERSION file
+        run: echo "VERSION=$(cat VERSION)" >> $GITHUB_ENV
 
-      - name: Check Docker Repository Owner and Name
-        run: |
-          if [ -z "${{ secrets.DOCKER_USERNAME }}" ]; then echo "DOCKER_USERNAME is not set"; exit 1; fi
-          if [ -z "${{ secrets.DOCKER_REPOSITORY }}" ]; then echo "DOCKER_REPOSITORY is not set"; exit 1; fi
-
+      # Step 8: Build and push production Docker image
       - name: Build and push production Docker image
         run: |
-          VERSION=$(jq -r .version package.json)
-          IMAGE_NAME=${{ secrets.DOCKER_USERNAME }}/${{ secrets.DOCKER_REPOSITORY }}:${VERSION}
-          docker buildx build --platform linux/arm/v7 -t $IMAGE_NAME --push -f Dockerfile .
+          docker buildx build --platform linux/arm/v7 -t ${{ secrets.DOCKER_USERNAME }}/${{ secrets.DOCKER_REPOSITORY }}:$VERSION --push -f Dockerfile .
           docker buildx build --platform linux/arm/v7 -t ${{ secrets.DOCKER_USERNAME }}/${{ secrets.DOCKER_REPOSITORY }}:latest --push -f Dockerfile .
 
+      # Step 9: Build and push development Docker image
       - name: Build and push development Docker image
         run: |
-          VERSION=$(jq -r .version package.json)
-          IMAGE_NAME_DEV=${{ secrets.DOCKER_USERNAME }}/${{ secrets.DOCKER_REPOSITORY }}-dev:${VERSION}
-          docker buildx build --platform linux/arm/v7 -t $IMAGE_NAME_DEV --push -f Dockerfile.dev .
+          docker buildx build --platform linux/arm/v7 -t ${{ secrets.DOCKER_USERNAME }}/${{ secrets.DOCKER_REPOSITORY }}-dev:$VERSION --push -f Dockerfile.dev .
           docker buildx build --platform linux/arm/v7 -t ${{ secrets.DOCKER_USERNAME }}/${{ secrets.DOCKER_REPOSITORY }}-dev:latest --push -f Dockerfile.dev .

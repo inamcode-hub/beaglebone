@@ -107,19 +107,17 @@ async function main() {
     runProd: `docker run --network host --privileged --restart on-failure:5 --restart always --name beaglebone-app --device=/dev/ttyS2 --env-file ${envFilePath} -v /:/host-root:ro -v /home/debian/scripts:/usr/local/bin/scripts -v /home/debian/docker/beaglebone/logs:/var/log/myapp:rw -e HOST_IP=${hostIP} -e PUBLIC_IP=${publicIP} -e BEAGLEBONE_SERIAL_NUMBER=${uniqueIdentifier} ${dockerProdImage}`,
   };
 
-  // Function to check if a container is running and stop/remove it if necessary
+  // Function to handle existing containers
   function handleExistingContainer(containerName) {
     try {
-      // Check if the container exists
-      const exists = execSync(
-        `docker ps -a --filter "name=${containerName}" --format "{{.Names}}"`
-      )
+      const existingContainers = execSync(`docker ps -a --format "{{.Names}}"`)
         .toString()
-        .trim();
+        .trim()
+        .split('\n');
 
-      if (exists === containerName) {
+      if (existingContainers.includes(containerName)) {
         console.log(
-          `Container ${containerName} exists. Stopping and removing it...`
+          `Container ${containerName} exists. Stopping and removing...`
         );
         execSync(`docker stop ${containerName}`);
         execSync(`docker rm ${containerName}`);
@@ -127,11 +125,13 @@ async function main() {
         console.log(`Container ${containerName} does not exist.`);
       }
     } catch (error) {
-      console.log(
-        `Error handling container ${containerName}: ${error.message}`
+      console.error(
+        `Error handling container ${containerName}:`,
+        error.message
       );
     }
   }
+
   // Function to execute Docker commands
   function runCommand(command) {
     try {
@@ -144,10 +144,16 @@ async function main() {
 
   // Determine the command to run
   const command = process.argv[2];
+  const containerName =
+    command === 'runProd' || command === 'buildProd'
+      ? 'beaglebone-app'
+      : 'beaglebone-app-dev';
+
+  // Handle existing container
+  handleExistingContainer(containerName);
+
+  // Execute the appropriate command (build or run)
   if (commands[command]) {
-    const containerName =
-      command === 'runProd' ? 'beaglebone-app' : 'beaglebone-app-dev';
-    handleExistingContainer(containerName);
     runCommand(commands[command]);
   } else {
     console.error(`Invalid command: ${command}`);

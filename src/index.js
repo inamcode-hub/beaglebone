@@ -40,7 +40,10 @@ app.listen(port, () => {
 });
 
 // Ensure to close the Modbus client when the application is shutting down
-process.on('SIGINT', async () => {
-  await modbusClient.close();
-  process.exit();
+process.on('SIGTERM', () => {
+  logger.info('SIGTERM signal received: closing Modbus connection...');
+  modbusClient.close(() => {
+    logger.info('Modbus connection closed.');
+    process.exit(0);
+  });
 });
